@@ -1,68 +1,63 @@
-// 1. Setup & Imports
-require('dotenv').config(); // Secret password load korche
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-// 2. App Configuration
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 3. Middleware (Security & Data Parsing)
-app.use(cors()); // Allow requests from anywhere
-app.use(bodyParser.json()); // Understand JSON data
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static(__dirname));
 
-// 👇 CRITICAL LINE: Eta Vercel/Render ke bole HTML file gulo serve korte
-app.use(express.static(__dirname)); 
-
-// 4. Database Connection (MongoDB)
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log("✅ MongoDB Connected Successfully!"))
-    .catch(err => console.log("❌ Database Connection Error:", err));
+    .then(() => console.log("✅ MongoDB Connected!"))
+    .catch(err => console.log("❌ DB Error:", err));
 
-// 5. Database Schema (Structure of Data)
 const HackathonSchema = new mongoose.Schema({
-    name: String,
-    organizer: String,
-    location: String,
-    mode: String,       // Online/Offline/Hybrid
-    pptNeeded: String,  // Yes/No
-    registered: String, // Yes/No
-    startDate: String,
-    endDate: String,
-    teamSize: Number,
-    teamCode: String,
-    link: String
+    name: String, organizer: String, location: String, mode: String,
+    pptNeeded: String, registered: String, startDate: String, endDate: String,
+    teamSize: Number, teamCode: String, link: String
 });
 
 const Hackathon = mongoose.model('Hackathon', HackathonSchema);
 
-// 6. API Routes (The Brain)
+// --- ROUTES ---
 
-// ➤ GET: Shob Hackathon List pathao (Latest first)
+// 1. GET (Sort by Date: Nearest First)
 app.get('/api/hackathons', async (req, res) => {
     try {
-        // Sort by _id: -1 mane latest data opore thakbe
-        const hacks = await Hackathon.find().sort({_id: -1}); 
+        // Amra Frontend-ei sort korbo, tai ekhane simple rakhlam
+        const hacks = await Hackathon.find(); 
         res.json(hacks);
-    } catch (err) {
-        res.status(500).json({ error: "Data ante parlam na!" });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ➤ POST: Notun Hackathon Save koro
+// 2. POST (Add New)
 app.post('/api/hackathons', async (req, res) => {
     try {
         const newHack = new Hackathon(req.body);
-        await newHack.save(); // Database-e save holo
-        res.json({ message: "Saved Successfully!", data: newHack });
-    } catch (err) {
-        res.status(500).json({ error: "Save kora gelo na!" });
-    }
+        await newHack.save();
+        res.json({ message: "Saved!", data: newHack });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 7. Start the Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
+// 3. DELETE (Notun Feature: Remove Data) 🗑️
+app.delete('/api/hackathons/:id', async (req, res) => {
+    try {
+        await Hackathon.findByIdAndDelete(req.params.id);
+        res.json({ message: "Deleted!" });
+    } catch (err) { res.status(500).json({ error: "Delete failed" }); }
 });
+
+// 4. PUT (Notun Feature: Edit Data) ✏️
+app.put('/api/hackathons/:id', async (req, res) => {
+    try {
+        const updatedHack = await Hackathon.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(updatedHack);
+    } catch (err) { res.status(500).json({ error: "Update failed" }); }
+});
+
+app.listen(PORT, () => { console.log(`🚀 Server running on port ${PORT}`); });
