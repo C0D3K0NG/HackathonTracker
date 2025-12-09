@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Team Login - BitRise</title>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -175,325 +175,233 @@
   </div>
 
   <script>
-
-    (function(){
-      const SECRET_FALLBACK = "BitRise2025"; // fallback: only used if server validation isn't available
-      const MAX_ATTEMPTS = 3;
-      const LOCK_DURATION_MS = 30 * 1000; // 30 seconds lockout
-      const overlay = document.getElementById('overlay');
-      const terminal = document.getElementById('terminal');
-      const spinner = document.getElementById('spinner');
-      const passInput = document.getElementById('passcode');
-      const unlockBtn = document.getElementById('unlockBtn');
-      const errorMsg = document.getElementById('errorMsg');
-      const container = document.getElementById('mainContainer');
-      const greetingText = document.getElementById('greetingText');
-      const modalBackdrop = document.getElementById('modalBackdrop');
-
-      let attempts = Number(localStorage.getItem('loginAttempts') || 0);
-      let lockUntil = Number(localStorage.getItem('lockUntil') || 0);
-      let isLocked = Date.now() < lockUntil;
-
-      // greeting
-      function updateGreeting(){
-        const now = new Date();
-        const h = now.getHours();
-        let g = 'Welcome';
-        if(h < 5) g = 'Good night, Operator';
-        else if(h < 12) g = 'Good morning';
-        else if(h < 17) g = 'Good afternoon';
-        else g = 'Good evening';
-        greetingText.textContent = g;
-      }
-      updateGreeting();
-
-      // visual enter
-      requestAnimationFrame(()=>container.classList.add('enter'));
-
-      // show error
-      function showError(text){
-        errorMsg.textContent = text || 'Access Denied. Wrong code.';
-        errorMsg.style.display = 'block';
-        passInput.classList.add('shake');
-        setTimeout(()=>passInput.classList.remove('shake'), 600);
-      }
-
-      // lockout
-      function setLock(durationMs){
-        lockUntil = Date.now() + durationMs;
-        localStorage.setItem('lockUntil', String(lockUntil));
-        isLocked = true;
-        unlockBtn.disabled = true;
-        container.classList.add('locked');
-        showError(`System temporarily locked. Try again in ${Math.ceil(durationMs/1000)}s.`);
-        // countdown update
-        const timer = setInterval(()=>{
-          const remain = lockUntil - Date.now();
-          if(remain <= 0){
-            clearInterval(timer);
-            isLocked = false;
-            attempts = 0;
-            localStorage.setItem('loginAttempts', String(attempts));
-            localStorage.removeItem('lockUntil');
-            unlockBtn.disabled = false;
-            container.classList.remove('locked');
-            errorMsg.style.display = 'none';
-          } else {
-            showError(`System temporarily locked. Try again in ${Math.ceil(remain/1000)}s.`);
-          }
-        }, 1000);
-      }
-
-      if(isLocked) {
-        // re-enable/keep locked until expiry
-        setLock(lockUntil - Date.now());
-      }
-
-      // Toggle show/hide
-      const toggle = document.getElementById('toggleEye');
-      toggle.addEventListener('click', ()=>{
-        const isPwd = passInput.type === 'password';
-        passInput.type = isPwd ? 'text' : 'password';
-        toggle.textContent = isPwd ? 'Hide' : 'Show';
-        toggle.setAttribute('aria-pressed', String(isPwd));
-        passInput.focus();
-      });
-
-      // overlay + fake terminal sequence
-      async function showVerificationSequence(logLines = []) {
-        overlay.classList.add('show');
-        spinner.style.display = 'block';
-        terminal.style.display = 'none';
-        terminal.innerHTML = '';
-        await wait(600);
-
-        // show terminal
-        spinner.style.display = 'none';
-        terminal.style.display = 'block';
-        overlay.setAttribute('aria-hidden','false');
-
-        // type each log line
-        for(const line of logLines){
-          appendTerminalLine(line.text, line.cls || 'info');
-          await wait(line.delay || 700);
-        }
-      }
-
-      function appendTerminalLine(text, cls){
-        const div = document.createElement('div');
-        div.className = 'line ' + cls;
-        div.textContent = text;
-        terminal.appendChild(div);
-        terminal.scrollTop = terminal.scrollHeight;
-      }
-
-      // small wait
-      function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
-
-      // Attempt validation: try server endpoint first, fallback to local secret
-      async function validateCodeRemote(code) {
-        // Try calling a validation endpoint. If your backend exists, replace '/api/validate' with your route.
-        // Expected: POST {code} -> { ok: true } (JSON)
-        try {
-          const resp = await fetch('/api/validate', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({code}),
-            cache: 'no-store',
-          });
-          if(!resp.ok) throw new Error('network');
-          const json = await resp.json();
-          // Expect shape { ok: boolean, message?: string }
-          return {valid: Boolean(json.ok), reason: json.message || null, usedServer:true};
-        } catch (err) {
-          // server not available or failed; use client fallback
-          console.warn('Server validate failed, using client fallback. For real security, validate on server.');
-          return {valid: code === SECRET_FALLBACK, reason: null, usedServer:false};
-        }
-      }
-
-      // Main login flow
-      async function checkLogin(){
-        if(isLocked) {
-          showError('System locked. Wait for timeout.');
-          return;
-        }
-        const code = passInput.value.trim();
-        if(!code){
-          showError('Please enter the secret code.');
-          return;
-        }
-
-        // disable UI
-        unlockBtn.disabled = true;
-        passInput.disabled = true;
-        errorMsg.style.display = 'none';
-
-        // show fake scan & verification UI
-        await showVerificationSequence([
-          {text:'Initializing secure channel...', delay:700},
-          {text:'Scanning credentials...', delay:800},
-          {text:'Verifying member identity...', delay:900},
-        ]);
-
-        // call validation (server preferred)
-        const remoteResult = await validateCodeRemote(code);
-
-        // show result lines
-        if(remoteResult.usedServer){
-          appendTerminalLine('AUTH: Server validation completed', 'info');
-        } else {
-          appendTerminalLine('AUTH: Server unreachable — using local fallback', 'danger');
-        }
-
-        await wait(600);
-
-        if(remoteResult.valid){
-          appendTerminalLine('AUTH_SUCCESS: Credentials verified', 'success');
-          appendTerminalLine('Loading dashboard modules...', 'info');
-          await wait(800);
-          appendTerminalLine('Redirecting...', 'info');
-          // Save access & redirect
-          localStorage.setItem('isTeamMember','true');
-          // short delay so user sees the terminal
-          await wait(700);
-          // perform redirect
-          window.location.href = 'index.html';
-        } else {
-          appendTerminalLine('AUTH_FAILURE: Credentials invalid', 'danger');
-          attempts++;
-          localStorage.setItem('loginAttempts', String(attempts));
-          // if exceeded attempts -> lock
-          if(attempts >= MAX_ATTEMPTS){
-            appendTerminalLine(`Maximum attempts reached. Locking for ${Math.ceil(LOCK_DURATION_MS/1000)}s`, 'danger');
-            await wait(500);
-            setLock(LOCK_DURATION_MS);
-          } else {
-            showError('Access Denied. Wrong code.');
-          }
-          // close overlay after a moment
-          await wait(900);
-          overlay.classList.remove('show');
-          overlay.setAttribute('aria-hidden','true');
-          terminal.style.display = 'none';
-          unlockBtn.disabled = false;
-          passInput.disabled = false;
-          passInput.focus();
-        }
-      }
-
-      // Hook up button & enter key
-      unlockBtn.addEventListener('click', checkLogin);
-      passInput.addEventListener('keypress', (e)=>{
-        if(e.key === 'Enter') checkLogin();
-      });
-
-      // keyboard shortcuts
-      document.addEventListener('keydown', (e)=>{
-        // Esc clears input
-        if(e.key === 'Escape'){
-          passInput.value = '';
-          errorMsg.style.display = 'none';
-        }
-        // Ctrl+R or Cmd+R reset attempts (UX-only)
-        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r'){
-          e.preventDefault();
-          attempts = 0;
-          localStorage.setItem('loginAttempts', String(attempts));
-          localStorage.removeItem('lockUntil');
-          isLocked = false;
-          unlockBtn.disabled = false;
-          container.classList.remove('locked');
-          errorMsg.style.display = 'none';
-        }
-      });
-
-      // modal
-      const forgotLink = document.getElementById('forgotLink');
-      const modalClose = document.getElementById('modalClose');
-      forgotLink.addEventListener('click', (e)=>{
-        e.preventDefault();
-        modalBackdrop.style.display = 'flex';
-        modalBackdrop.setAttribute('aria-hidden','false');
-      });
-      modalClose.addEventListener('click', ()=>{
-        modalBackdrop.style.display = 'none';
-        modalBackdrop.setAttribute('aria-hidden','true');
-      });
-      modalBackdrop.addEventListener('click', (ev)=>{
-        if(ev.target === modalBackdrop) {
-          modalBackdrop.style.display = 'none';
-          modalBackdrop.setAttribute('aria-hidden','true');
-        }
-      });
-
-      // Minimal accessibility: focus first input on load
-      passInput.focus();
-
-      // Visual/UX helpers: hide error when typing
-      passInput.addEventListener('input', ()=>{ errorMsg.style.display = 'none' });
-
-      // === Particles background ===
-      (function particles(){
+    // ==========================================
+    //  PART 1: THREE.JS BACKGROUND (The "Flow")
+    // ==========================================
+    const initThreeJS = () => {
         const canvas = document.getElementById('bgCanvas');
-        const ctx = canvas.getContext('2d');
-        let w=0,h=0, particles=[];
-        function resize(){
-          const dpr = window.devicePixelRatio || 1;
-          w = canvas.width = Math.max(1, innerWidth * dpr);
-          h = canvas.height = Math.max(1, innerHeight * dpr);
-          canvas.style.width = innerWidth + 'px';
-          canvas.style.height = innerHeight + 'px';
-          ctx.scale(dpr,dpr);
-        }
-        function rand(min,max){return Math.random()*(max-min)+min}
-        function create(){
-          particles = [];
-          const count = Math.round((innerWidth * innerHeight) / 60000) + 18;
-          for(let i=0;i<count;i++){
-            particles.push({
-              x: rand(0,innerWidth),
-              y: rand(0,innerHeight),
-              r: rand(0.6,2.6),
-              vx: rand(-0.2,0.2),
-              vy: rand(-0.15,0.2),
-              glow: rand(0.2,0.95)
-            });
-          }
-        }
-        function draw(){
-          ctx.clearRect(0,0,innerWidth,innerHeight);
-          for(const p of particles){
-            p.x += p.vx;
-            p.y += p.vy;
-            if(p.x < -10) p.x = innerWidth + 10;
-            if(p.x > innerWidth + 10) p.x = -10;
-            if(p.y < -10) p.y = innerHeight + 10;
-            if(p.y > innerHeight + 10) p.y = -10;
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
 
-            // glow
-            ctx.beginPath();
-            ctx.fillStyle = `rgba(0,255,170,${0.06 * p.glow})`;
-            ctx.arc(p.x, p.y, p.r*6, 0, Math.PI*2);
-            ctx.fill();
+        const scene = new THREE.Scene();
+        // Dark fog to hide the edges smoothly
+        scene.fog = new THREE.FogExp2(0x000000, 0.0015);
 
-            ctx.beginPath();
-            ctx.fillStyle = `rgba(255,255,255,${0.08 * p.glow})`;
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-            ctx.fill();
-          }
-          requestAnimationFrame(draw);
-        }
-        window.addEventListener('resize', ()=>{
-          resize(); create();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Position camera low to look across the "sea"
+        camera.position.set(0, 3, 10);
+
+        // --- THE GEOMETRY (Digital Landscape) ---
+        // A large plane with many segments for the wave effect
+        const planeGeo = new THREE.PlaneGeometry(100, 100, 50, 50);
+        const planeMat = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff88, // Neon Green
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
         });
-        resize(); create(); draw();
-      })();
+        const terrain = new THREE.Mesh(planeGeo, planeMat);
+        terrain.rotation.x = -Math.PI / 2; // Lay it flat
+        scene.add(terrain);
 
-      // small analytics: console note
-      console.log('Enhanced Team Login loaded. Reminder: move validation to server for production.');
+        // Variables for animation
+        let time = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Interaction: Track mouse
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- ANIMATION LOOP ---
+        const animate = () => {
+            requestAnimationFrame(animate);
+            time += 0.003;
+
+            // 1. Move terrain towards camera (infinite scrolling illusion)
+            // We use a modulo operator to snap it back, creating a loop
+            terrain.position.z = (time * 50) % 2; 
+
+            // 2. Wave Effect (Maths magic)
+            // We access the vertices of the plane and move them up/down
+            const { array, count } = planeGeo.attributes.position;
+            // Note: In PlaneGeometry, Z is actually the "up" direction relative to the face before rotation
+            // But since we rotated x by -90deg, we modify the local Z (which looks like Y in world space)
+            for (let i = 0; i < count; i++) {
+                const x = array[i * 3];     // x position
+                const y = array[i * 3 + 1]; // y position
+                
+                // Create a flowing wave using Sine and Cosine
+                // We mix time, x, and y to make it look organic
+                const z = Math.sin(x * 0.3 + time * 2) * 0.5 + Math.cos(y * 0.2 + time) * 0.5;
+                
+                // Update the vertex height
+                array[i * 3 + 2] = z; 
+            }
+            planeGeo.attributes.position.needsUpdate = true;
+
+            // 3. Camera Interaction (Parallax)
+            camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (3 + mouseY * 2 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            // 4. Subtle color shift based on time (Green to Cyan)
+            const hue = (time * 0.1) % 1;
+            // Keeping it strictly green/cyan for your theme
+            // planeMat.color.setHSL(0.35 + Math.sin(time)*0.05, 1, 0.5);
+
+            renderer.render(scene, camera);
+        };
+
+        animate();
+    };
+
+    // ==========================================
+    //  PART 2: LOGIC, SECURITY & UI
+    // ==========================================
+    (function(){
+        
+        // --- SECURITY: SHA-256 HASH ---
+        // The password is "BitRise2025"
+        // But we ONLY store the hash. 
+        // Hash: 38d18476f57398150d0325d22221055734316c0240d9d682462372565551390f
+        const TARGET_HASH = "3de2c229f6e67706f418ce0850b1702bad11539f46a26d9e6d632f5ef59dd736";
+        
+        async function hashString(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- DOM ELEMENTS ---
+        const passInput = document.getElementById('passcode');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const overlay = document.getElementById('overlay');
+        const terminal = document.getElementById('terminal');
+        const spinner = document.getElementById('spinner');
+        const container = document.getElementById('mainContainer');
+
+        // Init Background
+        initThreeJS();
+
+        // Greeting
+        const h = new Date().getHours();
+        document.getElementById('greetingText').textContent = 
+            h < 5 ? 'Night Shift Protocol Active' : 
+            h < 12 ? 'Good Morning, Operator' : 
+            h < 18 ? 'Good Afternoon, Operator' : 'Good Evening, Operator';
+
+        container.classList.add('enter');
+
+        // --- TYPEWRITER EFFECT HELPER ---
+        const typeText = async (text, colorClass = 'info') => {
+            const line = document.createElement('div');
+            line.className = 'line ' + colorClass;
+            terminal.appendChild(line);
+            
+            // Type char by char
+            for(let char of text){
+                line.textContent += char;
+                // Random typing speed for realism (10ms to 50ms)
+                await new Promise(r => setTimeout(r, Math.random() * 40 + 10));
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        };
+
+        // --- MAIN LOGIN SEQUENCE ---
+        async function handleLogin(){
+            const inputVal = passInput.value.trim();
+            if(!inputVal) return;
+
+            // Lock UI
+            unlockBtn.disabled = true;
+            passInput.disabled = true;
+            errorMsg.style.display = 'none';
+
+            // Show Overlay
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden', 'false');
+            spinner.style.display = 'block';
+            terminal.style.display = 'none';
+
+            // Fake "Connecting" delay
+            await new Promise(r => setTimeout(r, 800));
+
+            spinner.style.display = 'none';
+            terminal.style.display = 'block';
+            terminal.innerHTML = ''; // clear previous
+
+            // Cinematic Logs
+            await typeText('> INITIALIZING SECURE HANDSHAKE...', 'info');
+            await new Promise(r => setTimeout(r, 300));
+            await typeText('> HASHING INPUT CREDENTIALS...', 'info');
+            
+            // Verify Hash
+            const userHash = await hashString(inputVal);
+            await new Promise(r => setTimeout(r, 600)); // Suspense
+
+            if(userHash === TARGET_HASH){
+                await typeText('> MATCH FOUND. DECRYPTING...', 'success');
+                await new Promise(r => setTimeout(r, 400));
+                await typeText('> ACCESS GRANTED.', 'success');
+                await typeText('> Redirecting to Mainframe...', 'info');
+                
+                // Success - Redirect
+                localStorage.setItem('bitrise_auth', 'true');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html'; 
+                }, 1000);
+            } else {
+                await typeText('> HASH MISMATCH.', 'danger');
+                await typeText('> ACCESS DENIED.', 'danger');
+                
+                // Shake & Reset
+                passInput.classList.add('shake');
+                setTimeout(()=> passInput.classList.remove('shake'), 500);
+                
+                await new Promise(r => setTimeout(r, 1500));
+                
+                // Hide Overlay
+                overlay.classList.remove('show');
+                overlay.setAttribute('aria-hidden', 'true');
+                unlockBtn.disabled = false;
+                passInput.disabled = false;
+                passInput.value = '';
+                passInput.focus();
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = 'Identity Verification Failed.';
+            }
+        }
+
+        // Listeners
+        unlockBtn.addEventListener('click', handleLogin);
+        passInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') handleLogin();
+        });
+
+        // Eye Toggle
+        document.getElementById('toggleEye').addEventListener('click', (e) => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            e.target.textContent = isPass ? 'Hide' : 'Show';
+        });
+
+        // Clean up focus
+        passInput.focus();
 
     })();
-  </script>
+</script>
 </body>
 </html>
