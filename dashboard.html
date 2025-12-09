@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Hack Tracker</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         /* --- 1. FONTS & LAYOUT --- */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -23,8 +26,7 @@
             margin-bottom: 20px; text-transform: uppercase; 
         }
 
-        /* --- 2. TOP BUTTONS (Add & Logout) --- */
-        /* ADD EVENT (Top Left) */
+        /* --- 2. TOP BUTTONS --- */
         .nav-btn { 
             position: absolute; top: 20px; left: 20px; 
             text-decoration: none; color: #00ff88; font-weight: bold; 
@@ -34,7 +36,6 @@
         }
         .nav-btn:hover { background: #00ff88; color: #000; box-shadow: 0 0 15px #00ff88; }
 
-        /* LOGOUT (Top Right) */
         .auth-btn { 
             position: absolute; top: 20px; right: 20px; 
             background: transparent; border: 1px solid #ff4444; 
@@ -62,7 +63,7 @@
             display: grid; grid-template-columns: 1fr; gap: 25px; 
         }
         @media(min-width: 768px) { .list-container { grid-template-columns: 1fr 1fr; } }
-
+        
         /* --- 5. CARD DESIGN --- */
         .hackathon-card { 
             background: rgba(20, 20, 20, 0.9); 
@@ -74,32 +75,30 @@
             transform: translateY(-5px); 
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); 
         }
-
-        /* Status Colors (Border) */
-        .status-Winner { border-top-color: #FFD700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        
+        /* Status Colors (Border Glow) */
+        .status-Winner { border-top-color: #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); } /* Gold */
         .status-Shortlisted { border-top-color: #bc13fe; }
         .status-Applied { border-top-color: #00d4ff; }
         .status-Interested { border-top-color: #00ff88; }
         .status-Rejected { border-top-color: #ff4444; opacity: 0.8; }
         .status-undefined { border-top-color: #888; }
 
-        /* Typography */
+        /* Typography & Timer */
         .title { font-size: 22px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; }
         .organizer { font-size: 13px; color: #888; margin-bottom: 15px; display: block; }
-        .date-highlight { font-size: 14px; font-weight: bold; color: #aaa; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #ccc; }
-
-        /* Countdown Timer */
         .countdown-timer { 
             font-family: 'Orbitron', sans-serif; font-size: 14px; color: #ffeb3b; 
             background: rgba(255, 235, 59, 0.1); padding: 5px 10px; 
             border-radius: 5px; display: inline-block; margin-bottom: 10px; 
             border: 1px solid rgba(255, 235, 59, 0.3); 
         }
-
+        .date-highlight { font-size: 14px; font-weight: bold; color: #aaa; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #ccc; }
+        
         /* Badges */
         .badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #222; border: 1px solid #444; }
-        .badge.yes { border-color: #00ff88; color: #00ff88; }
+        .badge.yes { border-color: #00ff88; color: #00ff88; } 
         .badge.no { border-color: #ff4444; color: #ff4444; }
         .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold; }
 
@@ -110,7 +109,7 @@
         .status-open { color: #00ff88; }
         .member-list { font-size: 12px; color: #bbb; font-style: italic; }
 
-        /* Action Buttons */
+        /* Buttons */
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         .visit-btn { flex: 1; text-align: center; background: #333; color: #fff; padding: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; border: 1px solid #555; transition: 0.3s; }
         .visit-btn:hover { background: #fff; color: #000; }
@@ -119,7 +118,7 @@
         .edit-btn:hover { background: #ffeb3b; color: #000; } 
         .delete-btn:hover { background: #ff4444; color: white; }
 
-        /* --- 6. MODAL STYLES --- */
+        /* --- 6. MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         .modal { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #00ff88; width: 90%; max-width: 400px; }
         .modal h3 { color: #00ff88; margin-top: 0; font-family: 'Orbitron', sans-serif; }
@@ -158,31 +157,20 @@
             <h3>EDIT DETAILS ✏️</h3>
             <input type="hidden" id="edit-id">
             
-            <label style="font-size:12px; color:#aaa">Event Name</label>
-            <input type="text" id="edit-name">
-            
-            <label style="font-size:12px; color:#aaa">Start Date</label>
-            <input type="date" id="edit-date">
-            
-            <label style="font-size:12px; color:#aaa">End Date</label>
-            <input type="date" id="edit-end-date">
-            
-            <label style="font-size:12px; color:#aaa">Team Members</label>
-            <input type="text" id="edit-members">
-            
+            <label style="font-size:12px; color:#aaa">Event Name</label><input type="text" id="edit-name">
+            <label style="font-size:12px; color:#aaa">Start Date</label><input type="date" id="edit-date">
+            <label style="font-size:12px; color:#aaa">End Date</label><input type="date" id="edit-end-date">
+            <label style="font-size:12px; color:#aaa">Team Members</label><input type="text" id="edit-members">
             <label style="font-size:12px; color:#aaa">Registered? ✅</label>
-            <select id="edit-reg">
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
-
+            <select id="edit-reg"><option value="Yes">Yes</option><option value="No">No</option></select>
+            
             <label style="font-size:12px; color:#aaa">Current Status 🚦</label>
             <select id="edit-status">
                 <option value="Interested">Interested</option>
                 <option value="Applied">Applied</option>
                 <option value="Shortlisted">Shortlisted</option>
                 <option value="Rejected">Rejected</option>
-                <option value="Winner">Winner</option>
+                <option value="Winner">Winner 🏆</option>
             </select>
 
             <div class="modal-actions">
@@ -195,7 +183,7 @@
     <div class="footer">Made by <span>BitRise</span> 🚀</div>
 
     <script>
-        // 1. SETUP API
+        // 1. SETUP API & VARIABLES
         const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") 
             ? "http://localhost:5000/api/hackathons" 
             : "https://hackathontracker.onrender.com/api/hackathons";
@@ -203,7 +191,7 @@
         const listDiv = document.getElementById('hackList');
         const modal = document.getElementById('editModal');
         const isLoggedIn = localStorage.getItem("isTeamMember") === "true";
-        let allHackathons = []; // For filtering
+        let allHackathons = [];
 
         // 2. AUTH FUNCTIONS
         function goToAdd() { 
@@ -216,24 +204,41 @@
             window.location.href = "login.html";
         }
 
-        // 3. LOAD DATA
+        // 3. 🎉 CONFETTI FUNCTION (Celebration Magic)
+        function triggerConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                // Create firework effect from two sides
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // 4. LOAD & FILTER DATA
         async function loadHackathons() {
             try {
                 const res = await fetch(API_URL); 
                 let data = await res.json();
                 
-                // Sort by Date (Nearest First)
+                // Sort by Nearest Date
                 data.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
                 
-                allHackathons = data; // Save for filter
-                renderList(allHackathons); // Draw
+                allHackathons = data;
+                renderList(allHackathons);
             } catch (err) { 
                 console.error(err); 
                 listDiv.innerHTML = "<p style='color:red; text-align:center;'>Server Error!</p>"; 
             }
         }
 
-        // 4. SEARCH & FILTER LOGIC
         function filterHackathons() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const mode = document.getElementById('mode-filter').value;
@@ -252,11 +257,10 @@
             if (data.length === 0) { listDiv.innerHTML = "<p style='color:#777; text-align:center;'>No match found.</p>"; return; }
 
             data.forEach(hack => {
-                // Determine Classes & Status
                 const pptClass = hack.pptNeeded === 'Yes' ? 'yes' : 'no';
                 const regClass = hack.registered === 'Yes' ? 'yes' : 'no';
                 const currentStatus = hack.currentStatus || 'Interested'; 
-                const statusClass = `status-${currentStatus}`;
+                const statusClass = `status-${currentStatus}`; // For border color
 
                 // Vacancy Logic
                 let membersList = hack.teamMembers ? hack.teamMembers.split(',').map(s => s.trim()).filter(s => s) : [];
@@ -264,12 +268,10 @@
                 let statusText = vacancy > 0 ? `🟢 ${vacancy} Slot(s) Open` : `🔴 Team Full`;
                 let statusColorClass = vacancy > 0 ? 'status-open' : 'status-full';
 
-                // Admin Buttons (Only if Logged In)
                 const adminButtons = isLoggedIn ? `
                     <button class="action-btn edit-btn" onclick="openEdit('${hack._id}', '${hack.name}', '${hack.startDate}', '${hack.endDate}', '${hack.registered}', '${currentStatus}', '${hack.teamMembers || ''}')">✏️</button>
                     <button class="action-btn delete-btn" onclick="deleteHack('${hack._id}')">🗑️</button>` : '';
 
-                // Draw Card
                 const card = `
                     <div class="hackathon-card ${statusClass}">
                         <div class="title">${hack.name}</div>
@@ -303,7 +305,7 @@
             startCountdown();
         }
 
-        // 6. TIMER FUNCTION
+        // 6. TIMER LOGIC
         function startCountdown() {
             setInterval(() => {
                 const timers = document.querySelectorAll('.countdown-timer');
@@ -327,7 +329,7 @@
             }, 1000);
         }
 
-        // 7. DELETE & EDIT LOGIC
+        // 7. EDIT & DELETE LOGIC
         async function deleteHack(id) { 
             if(!confirm("Delete this event?")) return; 
             await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); 
@@ -344,23 +346,31 @@
             document.getElementById('edit-status').value = status;
             modal.style.display = 'flex';
         }
+
         function closeModal() { modal.style.display = 'none'; }
         
         async function saveEdit() {
             const id = document.getElementById('edit-id').value;
+            const status = document.getElementById('edit-status').value;
+
+            // 🎉 Trigger Confetti if Winner!
+            if (status === "Winner") { triggerConfetti(); }
+
             const updatedData = {
                 name: document.getElementById('edit-name').value,
                 startDate: document.getElementById('edit-date').value,
                 endDate: document.getElementById('edit-end-date').value,
                 teamMembers: document.getElementById('edit-members').value,
                 registered: document.getElementById('edit-reg').value,
-                currentStatus: document.getElementById('edit-status').value
+                currentStatus: status
             };
+
             await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedData) });
-            closeModal(); loadHackathons();
+            closeModal(); 
+            loadHackathons();
         }
 
-        // Start
+        // Start App
         loadHackathons();
     </script>
 </body>
