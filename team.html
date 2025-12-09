@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team BitRise - The Creators</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+        
+        body { 
+            margin: 0; padding: 0; 
+            background-color: #050505; 
+            font-family: 'Poppins', sans-serif; 
+            color: #fff; 
+            overflow-x: hidden; /* Hide horizontal scroll */
+            position: relative;
+        }
+
+        /* 👇 ANIMATED BACKGROUND CANVAS */
+        #bg-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; /* Behind everything */
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+
+        /* CONTAINER FOR CONTENT (To center it) */
+        .content-wrapper {
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 40px 20px; min-height: 100vh; position: relative; z-index: 1;
+        }
+        
+        h2 { 
+            font-family: 'Orbitron', sans-serif; color: #00d4ff; 
+            text-shadow: 0 0 15px #00d4ff; font-size: 36px; 
+            margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; 
+            background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 10px;
+            border: 1px solid #00d4ff;
+        }
+
+        /* BACK BUTTON */
+        .back-btn { 
+            position: absolute; top: 20px; left: 20px; 
+            text-decoration: none; color: #00ff88; font-weight: bold; 
+            border: 1px solid #00ff88; padding: 10px 20px; 
+            border-radius: 20px; font-family: 'Orbitron', sans-serif; 
+            transition: 0.3s; background: rgba(0,0,0,0.8);
+        }
+        .back-btn:hover { background: #00ff88; color: #000; box-shadow: 0 0 15px #00ff88; }
+
+        /* TEAM GRID */
+        .team-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; max-width: 1200px; }
+
+        /* PROFILE CARD */
+        .member-card {
+            background: rgba(20, 20, 20, 0.7); /* Semi-transparent */
+            backdrop-filter: blur(10px); /* Frosted Glass Effect */
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 250px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* CARD HOVER */
+        .member-card:hover { 
+            transform: translateY(-10px) scale(1.02); 
+            border-color: #00d4ff; 
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); 
+        }
+        .member-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #00ff88, #00d4ff); }
+
+        /* IMAGE */
+        .profile-pic {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #333;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .member-card:hover .profile-pic { border-color: #00ff88; box-shadow: 0 0 15px #00ff88; }
+
+        /* TEXT */
+        .name { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: bold; color: #fff; margin: 5px 0; }
+        .role { color: #00d4ff; font-size: 14px; font-weight: 600; margin-bottom: 15px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .bio { font-size: 12px; color: #ccc; margin-bottom: 20px; line-height: 1.5; }
+
+        /* SOCIAL LINKS */
+        .social-links { display: flex; justify-content: center; gap: 15px; }
+        .social-btn { text-decoration: none; color: #fff; font-size: 18px; border: 1px solid #555; padding: 8px 12px; border-radius: 8px; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .social-btn:hover { background: #fff; color: #000; border-color: #fff; transform: rotate(10deg); }
+
+        .footer { margin-top: 50px; font-size: 14px; color: #888; font-family: 'Orbitron', sans-serif; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; }
+        .footer span { color: #00ff88; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="content-wrapper">
+        
+        <a href="dashboard.html" class="back-btn">⬅ DASHBOARD</a>
+
+        <h2>MEET TEAM BITRISE 🚀</h2>
+
+        <div class="team-container">
+            
+            <div class="member-card">
+                <img src="assets/Debopam_Image.jpg" alt="Profile" class="profile-pic">
+                <div class="name">Debopam Ghosh</div>
+                <span class="role">Backend Systems and Machine Learning</span>
+                <p class="bio">AOT CSBS undergrad | Backend Development | Machine Learning | Devops</p>
+                <div class="social-links">
+                    <a href="www.linkedin.com/in/debopam-ghosh12" class="social-btn">🐙</a> 
+                    <a href="https://github.com/debopamghosh12" class="social-btn">💼</a>
+                    <a href="mailto:debopamghosh2004@gmail.com" class="social-btn">📧</a>
+                </div>
+            </div>
+
+            <div class="member-card">
+                <img src="assets/Rajdeep_image.jpg" alt="Profile" class="profile-pic">
+                <div class="name">Rajdeep Saha</div>
+                <span class="role">Python Developer and CyberSecurity Expert</span>
+                <p class="bio">AOT CSBS undergrad | GFG Ambassador | Python | Offensive Security | Automation</p>
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/rajdeep-saha-b92452292/" class="social-btn">🐙</a>
+                    <a href="https://github.com/C0D3K0NG" class="social-btn">💼</a>
+                    <a href="mailto:1rajofficial0@gmail.com" class="social-btn">📧</a>
+                </div>
+            </div>
+
+            <div class="member-card">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" alt="Profile" class="profile-pic">
+                <div class="name">Harsvardhan Rajgarhia</div>
+                <span class="role">Backend Ninja</span>
+                <p class="bio">Database architect and server security expert. Keeping things fast.</p>
+                <div class="social-links">
+                    <a href="#" class="social-btn">🐙</a>
+                    <a href="#" class="social-btn">💼</a>
+                    <a href="mailto:your-email@gmail.com" class="social-btn">📧</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">Made with ❤️ by <span>BitRise</span></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        
+        // Resize function
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particles
+        const particles = [];
+        const particleCount = 60; // Adjust for density
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? '#00ff88' : '#00d4ff'; // Green or Blue
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // Animation Loop
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw connections
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < particleCount; i++) {
+                let p1 = particles[i];
+                p1.update();
+                p1.draw();
+
+                // Connect nearby particles
+                for (let j = i + 1; j < particleCount; j++) {
+                    let p2 = particles[j];
+                    let dx = p1.x - p2.x;
+                    let dy = p1.y - p2.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist < 120) { // Connection distance
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 255, 136, ${1 - dist/120})`; // Fading line
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+
+</body>
+</html>
