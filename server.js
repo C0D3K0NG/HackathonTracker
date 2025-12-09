@@ -11,31 +11,37 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
-// MongoDB Connection
+
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log("✅ MongoDB Connected!"))
     .catch(err => console.log("❌ DB Error:", err));
 
+
 const HackathonSchema = new mongoose.Schema({
-    name: String, organizer: String, location: String, mode: String,
-    pptNeeded: String, registered: String, startDate: String, endDate: String,
-    teamSize: Number, teamCode: String, link: String
+    name: String,
+    organizer: String,
+    location: String,
+    mode: String,
+    pptNeeded: String,
+    registered: String,
+    startDate: String,
+    endDate: String,
+    teamSize: Number,
+    teamCode: String,
+    teamMembers: String, 
+    link: String
 });
 
 const Hackathon = mongoose.model('Hackathon', HackathonSchema);
 
-// --- ROUTES ---
 
-// 1. GET (Sort by Date: Nearest First)
 app.get('/api/hackathons', async (req, res) => {
     try {
-        // Amra Frontend-ei sort korbo, tai ekhane simple rakhlam
-        const hacks = await Hackathon.find(); 
+        const hacks = await Hackathon.find().sort({_id: -1});
         res.json(hacks);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. POST (Add New)
 app.post('/api/hackathons', async (req, res) => {
     try {
         const newHack = new Hackathon(req.body);
@@ -44,15 +50,11 @@ app.post('/api/hackathons', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. DELETE (Notun Feature: Remove Data) 🗑️
 app.delete('/api/hackathons/:id', async (req, res) => {
-    try {
-        await Hackathon.findByIdAndDelete(req.params.id);
-        res.json({ message: "Deleted!" });
-    } catch (err) { res.status(500).json({ error: "Delete failed" }); }
+    try { await Hackathon.findByIdAndDelete(req.params.id); res.json({ message: "Deleted!" }); } 
+    catch (err) { res.status(500).json({ error: "Delete failed" }); }
 });
 
-// 4. PUT (Notun Feature: Edit Data) ✏️
 app.put('/api/hackathons/:id', async (req, res) => {
     try {
         const updatedHack = await Hackathon.findByIdAndUpdate(req.params.id, req.body, { new: true });

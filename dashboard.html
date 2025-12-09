@@ -5,81 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Hack Tracker</title>
     <style>
-        /* --- 1. FONTS & BASIC SETUP --- */
+        /* --- 1. FONTS & BASIC STYLES --- */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
-
+        
         body { 
-            margin: 0; 
-            padding: 40px 20px; 
+            margin: 0; padding: 40px 20px; 
             background-color: #050505; 
             font-family: 'Poppins', sans-serif; 
             color: #fff; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
+            display: flex; flex-direction: column; 
+            align-items: center; min-height: 100vh; 
         }
-
+        
         h2 { 
-            font-family: 'Orbitron', sans-serif; 
-            color: #00d4ff; 
-            text-shadow: 0 0 10px #00d4ff; 
-            font-size: 36px; 
-            margin-bottom: 40px; 
-            text-transform: uppercase; 
+            font-family: 'Orbitron', sans-serif; color: #00d4ff; 
+            text-shadow: 0 0 10px #00d4ff; font-size: 36px; 
+            margin-bottom: 40px; text-transform: uppercase; 
         }
 
         .nav-btn { 
-            position: absolute; 
-            top: 20px; 
-            left: 20px; 
-            text-decoration: none; 
-            color: #00ff88; 
-            font-weight: bold; 
-            border: 1px solid #00ff88; 
-            padding: 10px 20px; 
-            border-radius: 20px; 
-            font-family: 'Orbitron', sans-serif; 
-            transition: 0.3s; 
-            cursor: pointer; 
+            position: absolute; top: 20px; left: 20px; 
+            text-decoration: none; color: #00ff88; font-weight: bold; 
+            border: 1px solid #00ff88; padding: 10px 20px; 
+            border-radius: 20px; font-family: 'Orbitron', sans-serif; 
+            transition: 0.3s; cursor: pointer; 
         }
         .nav-btn:hover { background: #00ff88; color: #000; box-shadow: 0 0 15px #00ff88; }
-
+        
+        /* --- 2. CARD GRID --- */
         .list-container { 
-            width: 100%; 
-            max-width: 900px; 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 25px; 
+            width: 100%; max-width: 900px; 
+            display: grid; grid-template-columns: 1fr; gap: 25px; 
         }
         @media(min-width: 768px) { .list-container { grid-template-columns: 1fr 1fr; } }
-
+        
+        /* --- 3. HACKATHON CARD --- */
         .hackathon-card { 
             background: rgba(20, 20, 20, 0.9); 
-            border: 1px solid #333; 
-            border-top: 5px solid #00d4ff; 
-            padding: 30px; 
-            border-radius: 15px; 
-            transition: 0.3s; 
-            position: relative; 
+            border: 1px solid #333; border-top: 5px solid #00d4ff; 
+            padding: 30px; border-radius: 15px; 
+            transition: 0.3s; position: relative; 
         }
         .hackathon-card:hover { 
-            transform: translateY(-5px); 
-            border-top-color: #00ff88; 
+            transform: translateY(-5px); border-top-color: #00ff88; 
             box-shadow: 0 15px 30px rgba(0, 212, 255, 0.15); 
         }
-
+        
         .title { font-size: 22px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; }
         .organizer { font-size: 13px; color: #888; margin-bottom: 15px; display: block; }
-
+        
         .date-highlight { 
             font-size: 15px; font-weight: bold; color: #ffeb3b; 
             margin-bottom: 10px; display: flex; align-items: center; gap: 8px; 
         }
         
         .urgent-badge { 
-            background: #ff4444; color: white; font-size: 10px; padding: 2px 6px; 
-            border-radius: 4px; animation: pulse 1.5s infinite; display: none; 
+            background: #ff4444; color: white; font-size: 10px; 
+            padding: 2px 6px; border-radius: 4px; 
+            animation: pulse 1.5s infinite; display: none; 
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
@@ -88,6 +71,17 @@
         .badge.yes { border-color: #00ff88; color: #00ff88; } 
         .badge.no { border-color: #ff4444; color: #ff4444; }
 
+        /* --- 4. TEAM VACANCY SECTION --- */
+        .team-section { 
+            background: #111; padding: 10px; border-radius: 8px; 
+            margin-top: 15px; border: 1px dashed #333; 
+        }
+        .team-status { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
+        .status-full { color: #ff4444; } /* RED */
+        .status-open { color: #00ff88; } /* GREEN */
+        .member-list { font-size: 12px; color: #bbb; font-style: italic; }
+
+        
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         
         .visit-btn { 
@@ -96,12 +90,12 @@
             font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; 
         }
         .visit-btn:hover { background: #fff; }
-
+        
         .action-btn { background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .edit-btn:hover { background: #ffeb3b; color: #000; }
         .delete-btn:hover { background: #ff4444; color: white; }
 
-        /* MODAL STYLES */
+        
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.8); display: none; justify-content: center; 
@@ -114,22 +108,22 @@
         .modal h3 { color: #00ff88; margin-top: 0; font-family: 'Orbitron', sans-serif; }
         .modal input, .modal select { 
             width: 100%; padding: 10px; margin-bottom: 15px; 
-            background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box;
+            background: #222; border: 1px solid #444; color: #fff; 
+            border-radius: 5px; box-sizing: border-box; 
         }
         .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
         .save-btn { flex: 1; background: #00ff88; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .cancel-btn { flex: 1; background: #333; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-
+        
         .footer { margin-top: 50px; font-size: 14px; color: #888; font-family: 'Orbitron', sans-serif; }
         .footer span { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
-
+    
     <a href="javascript:void(0)" onclick="goToAdd()" class="nav-btn">➕ ADD EVENT</a>
-
+    
     <h2>UPCOMING EVENTS 🚀</h2>
-
     <div class="list-container" id="hackList">
         <p style="text-align: center; color: #555;">Loading Data...</p>
     </div>
@@ -139,21 +133,16 @@
             <h3>EDIT DETAILS ✏️</h3>
             <input type="hidden" id="edit-id">
             
-            <label style="font-size:12px; color:#aaa">Event Name</label>
-            <input type="text" id="edit-name">
-            
-            <label style="font-size:12px; color:#aaa">Start Date</label>
-            <input type="date" id="edit-date">
-
-             <label style="font-size:12px; color:#aaa">End Date</label>
-            <input type="date" id="edit-end-date">
-            
+            <label style="font-size:12px; color:#aaa">Event Name</label><input type="text" id="edit-name">
+            <label style="font-size:12px; color:#aaa">Start Date</label><input type="date" id="edit-date">
+            <label style="font-size:12px; color:#aaa">End Date</label><input type="date" id="edit-end-date">
+            <label style="font-size:12px; color:#aaa">Team Members (Comma separated)</label><input type="text" id="edit-members">
             <label style="font-size:12px; color:#aaa">Registration Status</label>
             <select id="edit-status">
                 <option value="Yes">Registered: Yes</option>
                 <option value="No">Registered: No</option>
             </select>
-
+            
             <div class="modal-actions">
                 <button class="save-btn" onclick="saveEdit()">SAVE</button>
                 <button class="cancel-btn" onclick="closeModal()">CANCEL</button>
@@ -164,6 +153,7 @@
     <div class="footer">Made by <span>BitRise</span> 🚀</div>
 
     <script>
+        
         const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") 
             ? "http://localhost:5000/api/hackathons"
             : "https://hackathontracker.onrender.com/api/hackathons";
@@ -172,60 +162,66 @@
         const modal = document.getElementById('editModal');
         const isLoggedIn = localStorage.getItem("isTeamMember") === "true";
 
-        function goToAdd() {
-            if (isLoggedIn) window.location.href = "index.html";
-            else window.location.href = "login.html";
+        function goToAdd() { 
+            if (isLoggedIn) window.location.href = "index.html"; 
+            else window.location.href = "login.html"; 
         }
 
         async function loadHackathons() {
             try {
-                const res = await fetch(API_URL);
+                const res = await fetch(API_URL); 
                 let data = await res.json();
                 
-                // Sort by Nearest Date
+                
                 data.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
+                
                 listDiv.innerHTML = "";
-                if (data.length === 0) { 
-                    listDiv.innerHTML = "<p style='color:#777; text-align:center;'>No events found.</p>"; 
-                    return; 
-                }
+                if (data.length === 0) { listDiv.innerHTML = "<p style='color:#777; text-align:center;'>No events found.</p>"; return; }
 
                 data.forEach(hack => {
                     const pptClass = hack.pptNeeded === 'Yes' ? 'yes' : 'no';
-                    
-                    // Urgent Badge Logic
-                    const today = new Date();
+                    const today = new Date(); 
                     const eventDate = new Date(hack.startDate);
-                    const diffTime = eventDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
                     const isUrgent = diffDays >= 0 && diffDays <= 3;
-                    
-                    const adminButtons = isLoggedIn ? `
-                        <button class="action-btn edit-btn" onclick="openEdit('${hack._id}', '${hack.name}', '${hack.startDate}', '${hack.endDate}', '${hack.registered}')">✏️</button>
-                        <button class="action-btn delete-btn" onclick="deleteHack('${hack._id}')">🗑️</button>
-                    ` : '';
 
-                    // 🔥 UPDATED: Show both Start and End Date
+                    
+                    let membersList = hack.teamMembers ? hack.teamMembers.split(',').map(s => s.trim()).filter(s => s) : [];
+                    let filled = membersList.length;
+                    let total = hack.teamSize;
+                    let vacancy = total - filled;
+                    
+                    // Status Text Logic
+                    let statusText = vacancy > 0 ? `🟢 ${vacancy} Slot(s) Open` : `🔴 Team Full`;
+                    let statusClass = vacancy > 0 ? 'status-open' : 'status-full';
+
+                    const adminButtons = isLoggedIn ? `
+                        <button class="action-btn edit-btn" onclick="openEdit('${hack._id}', '${hack.name}', '${hack.startDate}', '${hack.endDate}', '${hack.registered}', '${hack.teamMembers || ''}')">✏️</button>
+                        <button class="action-btn delete-btn" onclick="deleteHack('${hack._id}')">🗑️</button>` : '';
+
                     const card = `
                         <div class="hackathon-card">
                             <div class="title">
                                 ${hack.name} 
                                 <span class="urgent-badge" style="display:${isUrgent ? 'inline-block' : 'none'}">🔥 SOON!</span>
                             </div>
-                            
                             <div class="date-highlight">
                                 📅 ${hack.startDate} <span style="font-size:12px; color:#aaa; margin:0 5px;">to</span> ${hack.endDate}
                             </div>
-                            
                             <span class="organizer">By ${hack.organizer}</span>
-                            
                             <div class="info-row"><span>📍 ${hack.location} (${hack.mode})</span></div>
                             <div style="margin-top: 10px; display:flex; gap:5px;">
                                 <span class="badge ${pptClass}">PPT: ${hack.pptNeeded}</span>
                                 <span class="badge">Reg: ${hack.registered}</span>
                             </div>
                             
+                            <div class="team-section">
+                                <span class="team-status ${statusClass}">${statusText} (${filled}/${total})</span>
+                                <div class="member-list">
+                                    ${membersList.length > 0 ? membersList.join(', ') : 'No members yet'}
+                                </div>
+                            </div>
+
                             <div class="btn-group">
                                 <a href="${hack.link}" target="_blank" class="visit-btn">VISIT LINK ↗</a>
                                 ${adminButtons}
@@ -235,21 +231,22 @@
                 });
             } catch (err) { 
                 console.error(err); 
-                listDiv.innerHTML = "<p style='color:red; text-align:center;'>Server Error!</p>";
+                listDiv.innerHTML = "<p style='color:red; text-align:center;'>Server Error!</p>"; 
             }
         }
 
-        async function deleteHack(id) {
-            if(!confirm("Sure you want to delete this event?")) return;
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            loadHackathons();
+        async function deleteHack(id) { 
+            if(!confirm("Delete this?")) return; 
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); 
+            loadHackathons(); 
         }
 
-        function openEdit(id, name, date, endDate, reg) {
+        function openEdit(id, name, date, endDate, reg, members) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-name').value = name;
             document.getElementById('edit-date').value = date;
             document.getElementById('edit-end-date').value = endDate;
+            document.getElementById('edit-members').value = members;
             document.getElementById('edit-status').value = reg;
             modal.style.display = 'flex';
         }
@@ -262,20 +259,15 @@
                 name: document.getElementById('edit-name').value,
                 startDate: document.getElementById('edit-date').value,
                 endDate: document.getElementById('edit-end-date').value,
+                teamMembers: document.getElementById('edit-members').value,
                 registered: document.getElementById('edit-status').value
             };
-
-            const btn = document.querySelector('.save-btn');
-            btn.innerText = "Saving...";
-
-            await fetch(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
+            await fetch(`${API_URL}/${id}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(updatedData) 
             });
-            
-            btn.innerText = "SAVE";
-            closeModal();
+            closeModal(); 
             loadHackathons();
         }
 
