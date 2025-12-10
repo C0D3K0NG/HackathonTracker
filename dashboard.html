@@ -12,35 +12,35 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
         
-        /* 👇 CSS VARIABLES (Color Palette) */
+        /* 👇 UPDATED COLOR PALETTE */
         :root {
-            /* DARK MODE (Cyberpunk) */
+            /* 🌑 DARK MODE (Cyberpunk - Tomar Pochondo) */
             --bg-color: #050505;
             --text-color: #ffffff;
             --card-bg: rgba(20, 20, 20, 0.7);
             --card-border: #333;
             --navbar-bg: rgba(0,0,0,0.6);
             --input-bg: rgba(20,20,20,0.8);
-            --accent-cyan: #00d4ff;
-            --accent-green: #00ff88;
+            --accent-cyan: #00d4ff;  /* Neon Blue */
+            --accent-green: #00ff88; /* Neon Green */
             --bg-blur: 10px;
-            --canvas-gradient: radial-gradient(circle at center, #111 0%, #000 100%);
             --shadow-color: rgba(0,0,0,0.5);
+            --btn-text: #fff;
         }
 
-        /* ☀️ LIGHT MODE (Professional Tech) */
+        /* ☀️ LIGHT MODE (Clean & Professional) */
         body.light-mode {
-            --bg-color: #eef2f5; /* Soft Grey-Blue (Not blinding white) */
-            --text-color: #1a1a1a;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --card-border: #ccd0d5;
-            --navbar-bg: rgba(255, 255, 255, 0.9);
-            --input-bg: #ffffff;
-            --accent-cyan: #0066cc; /* Darker Blue for visibility */
-            --accent-green: #00a651; /* Darker Green */
-            --bg-blur: 15px;
-            --canvas-gradient: radial-gradient(circle at center, #f0f4f8 0%, #d9e2ec 100%); /* Soft Light Gradient */
-            --shadow-color: rgba(0,0,0,0.1);
+            --bg-color: #f0f2f5;     /* Soft Light Grey Background */
+            --text-color: #1a1a1a;   /* Dark Grey Text (Not Jet Black) */
+            --card-bg: #ffffff;      /* Pure White Cards (No Glass Effect) */
+            --card-border: #e4e6eb;  /* Very subtle border */
+            --navbar-bg: #ffffff;    /* Solid White Navbar */
+            --input-bg: #f0f2f5;     /* Light Grey Input */
+            --accent-cyan: #007bff;  /* Professional Blue */
+            --accent-green: #00a651; /* Darker Green for visibility */
+            --bg-blur: 0px;          /* No Blur in Light Mode */
+            --shadow-color: rgba(0, 0, 0, 0.08); /* Soft Shadow */
+            --btn-text: #000;
         }
 
         body { 
@@ -54,29 +54,27 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* 👇 CANVAS BACKGROUND (Visible in both modes) */
-        #bg-canvas { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: -1; 
-            background: var(--canvas-gradient); /* Dynamic Background */
-            transition: background 0.5s;
-        }
+        /* Canvas (Hidden in Light Mode to look clean) */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at center, #111 0%, #000 100%); transition: opacity 0.5s; }
+        body.light-mode #bg-canvas { opacity: 0; pointer-events: none; }
 
         /* NAVBAR */
         .navbar { 
             display: flex; justify-content: space-between; align-items: center; 
-            width: 100%; padding: 20px 40px; box-sizing: border-box; 
+            width: 100%; padding: 15px 30px; box-sizing: border-box; 
             background: var(--navbar-bg); backdrop-filter: blur(var(--bg-blur)); 
             position: fixed; top: 0; left: 0; z-index: 100; border-bottom: 1px solid var(--card-border); 
             transition: 0.3s;
+            box-shadow: 0 2px 10px var(--shadow-color);
         }
-        .nav-left { display: flex; gap: 15px; }
+        .nav-left { display: flex; gap: 15px; align-items: center; }
 
         /* BUTTONS */
         .nav-btn, .team-btn, .auth-btn, .theme-btn { 
             text-decoration: none; padding: 8px 16px; border-radius: 8px; 
-            font-family: 'Orbitron', sans-serif; transition: 0.3s; font-size: 14px; 
-            cursor: pointer; font-weight: bold; border: 1px solid; background: transparent;
+            font-family: 'Orbitron', sans-serif; transition: 0.3s; 
+            font-size: 13px; cursor: pointer; font-weight: bold; border: 1px solid; 
+            background: transparent; display: inline-flex; align-items: center; gap: 8px;
         }
         
         .nav-btn { color: var(--accent-green); border-color: var(--accent-green); } 
@@ -88,19 +86,14 @@
         .auth-btn { color: #ff4444; border-color: #ff4444; } 
         .auth-btn:hover { background: #ff4444; color: white; box-shadow: 0 0 10px #ff4444; }
 
-        /* Theme Toggle */
         .theme-btn { color: var(--text-color); border-color: var(--card-border); background: var(--card-bg); }
         .theme-btn:hover { background: var(--card-border); }
 
-        .main-content { margin-top: 100px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        h2 { font-family: 'Orbitron', sans-serif; color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan); font-size: 36px; margin-bottom: 20px; text-transform: uppercase; }
+        .main-content { margin-top: 100px; width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
         
-        /* ALERT BOX */
-        #reminder-container { width: 90%; max-width: 900px; margin-bottom: 20px; display: none; flex-direction: column; gap: 10px; }
-        .alert-card { background: rgba(255, 68, 68, 0.1); border: 1px solid #ff4444; border-left: 5px solid #ff4444; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .alert-text { color: #ff6666; font-size: 14px; }
-        .alert-title { color: #ff4444; font-weight: bold; font-family: 'Orbitron', sans-serif; margin-right: 10px; }
-        .alert-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: none; }
+        h2 { font-family: 'Orbitron', sans-serif; color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan); font-size: 32px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        /* Light mode text shadow remove */
+        body.light-mode h2 { text-shadow: none; }
 
         /* FILTERS */
         .filter-container { display: flex; gap: 10px; margin-bottom: 30px; width: 90%; max-width: 600px; }
@@ -108,20 +101,28 @@
             padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); 
             background: var(--input-bg); color: var(--text-color); 
             font-family: 'Poppins', sans-serif; backdrop-filter: blur(5px); flex: 1; 
+            outline: none;
         }
-        .search-box { flex: 2; } 
+        .search-box:focus { border-color: var(--accent-cyan); }
 
-        .list-container { width: 90%; max-width: 900px; display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 50px; }
+        .list-container { width: 90%; max-width: 900px; display: grid; grid-template-columns: 1fr; gap: 25px; }
         @media(min-width: 768px) { .list-container { grid-template-columns: 1fr 1fr; } }
         
-        /* CARD STYLES */
+        /* 👇 CARD STYLES (Key Change for Light Mode) */
         .hackathon-card { 
-            background: var(--card-bg); border: 1px solid var(--card-border); 
-            border-top: 5px solid; padding: 30px; border-radius: 15px; 
-            transition: 0.3s; position: relative; backdrop-filter: blur(var(--bg-blur));
-            box-shadow: 0 5px 15px var(--shadow-color);
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            border-top: 5px solid; 
+            padding: 30px; border-radius: 15px; 
+            transition: 0.3s; position: relative; 
+            backdrop-filter: blur(var(--bg-blur));
+            box-shadow: 0 4px 6px var(--shadow-color); /* Soft shadow for light mode */
         }
-        .hackathon-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); border-color: var(--accent-cyan); }
+        .hackathon-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 12px 24px var(--shadow-color); 
+            border-color: var(--accent-cyan); 
+        }
         
         /* Status Colors */
         .status-Winner { border-top-color: #FFD700; } 
@@ -130,53 +131,61 @@
         .status-Interested { border-top-color: var(--accent-green); } 
         .status-Rejected { border-top-color: #ff4444; opacity: 0.8; }
 
-        .title { font-size: 22px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; color: var(--text-color); }
-        .organizer { font-size: 13px; color: #888; margin-bottom: 15px; display: block; }
+        .title { font-size: 20px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; line-height: 1.4; color: var(--text-color); }
+        .organizer { font-size: 12px; color: #888; margin-bottom: 15px; display: block; }
         
         .countdown-timer { 
-            font-family: 'Orbitron', sans-serif; font-size: 14px; color: #b8860b; 
-            background: rgba(255, 235, 59, 0.1); padding: 5px 10px; 
+            font-family: 'Orbitron', sans-serif; font-size: 13px; color: #b8860b; 
+            background: rgba(255, 235, 59, 0.15); padding: 5px 10px; 
             border-radius: 5px; display: inline-block; margin-bottom: 10px; 
             border: 1px solid rgba(255, 235, 59, 0.5); 
         }
-        body:not(.light-mode) .countdown-timer { color: #ffeb3b; border-color: rgba(255, 235, 59, 0.3); }
+        body:not(.light-mode) .countdown-timer { color: #ffeb3b; border-color: rgba(255, 235, 59, 0.3); background: rgba(255, 235, 59, 0.1); }
 
-        .date-highlight { font-size: 14px; font-weight: bold; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-color); opacity: 0.8; }
+        .date-highlight { font-size: 13px; font-weight: bold; color: var(--text-color); opacity: 0.7; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-color); opacity: 0.8; }
         
-        .badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #222; border: 1px solid #444; color: #fff; }
-        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold; }
+        .badge { font-size: 10px; padding: 4px 8px; border-radius: 5px; background: #333; border: 1px solid #444; color: #fff; }
+        .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold; }
+        
+        /* Light mode badges tweak */
+        body.light-mode .badge, body.light-mode .status-badge { background: #e0e0e0; color: #333; border-color: #ccc; }
 
         .team-section { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px dashed var(--card-border); }
-        .team-status { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
+        .team-status { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
         .status-full { color: #ff4444; } .status-open { color: var(--accent-green); }
-        .member-list { font-size: 12px; color: var(--text-color); font-style: italic; opacity: 0.7; }
+        .member-list { font-size: 11px; color: var(--text-color); font-style: italic; opacity: 0.7; }
         
-        .proof-btn, .calendar-btn { background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 10px; font-family: 'Poppins'; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .proof-btn, .calendar-btn { background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 10px; font-family: 'Poppins'; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s; font-weight: 600; }
         .proof-btn:hover { background: var(--accent-cyan); color: #fff; }
         .calendar-btn { border-color: #ffc107; color: #ffc107; } .calendar-btn:hover { background: #ffc107; color: #000; }
+        body.light-mode .calendar-btn { border-color: #d39e00; color: #d39e00; }
+        body.light-mode .calendar-btn:hover { background: #d39e00; color: #fff; }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .visit-btn { flex: 1; text-align: center; background: #333; color: #fff; padding: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; border: 1px solid #555; transition: 0.3s; }
+        .btn-group { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .visit-btn { flex: 1; text-align: center; background: #333; color: #fff; padding: 8px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 11px; border: 1px solid #555; transition: 0.3s; }
         .visit-btn:hover { background: #fff; color: #000; }
         .report-btn { background: #fff; color: #000; border: none; font-weight: 800; } 
-        body.light-mode .report-btn { background: #333; color: #fff; }
+        body.light-mode .report-btn { background: #1a1a1a; color: #fff; }
+        body.light-mode .visit-btn { background: #e0e0e0; color: #333; border-color: #ccc; }
+        body.light-mode .visit-btn:hover { background: #333; color: #fff; }
 
-        .action-btn { background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; }
+        .action-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .edit-btn:hover { background: #ffeb3b; color: #000; border-color: #ffeb3b; } .delete-btn:hover { background: #ff4444; color: white; border-color: #ff4444; }
+        body.light-mode .action-btn { background: #fff; color: #333; border-color: #ccc; }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
-        .modal { background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--accent-green); width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; color: var(--text-color); }
+        .modal { background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--accent-green); width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; color: var(--text-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal h3 { color: var(--accent-green); margin-top: 0; font-family: 'Orbitron', sans-serif; }
         .modal input, .modal select { width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-color); border-radius: 5px; box-sizing: border-box; }
         .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .save-btn { flex: 1; background: var(--accent-green); border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .save-btn { flex: 1; background: var(--accent-green); border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000; }
         .cancel-btn { flex: 1; background: #333; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
         
-        .footer { margin-top: 20px; font-size: 14px; color: #888; font-family: 'Orbitron', sans-serif; padding-bottom: 20px; }
+        .footer { margin-top: 20px; font-size: 12px; color: #888; font-family: 'Orbitron', sans-serif; padding-bottom: 20px; }
         .footer span { color: var(--accent-green); font-weight: bold; }
 
-        /* Loading */
         .loading-container { text-align: center; margin-top: 50px; }
         .spinner { border: 3px solid rgba(0, 255, 136, 0.2); border-top: 3px solid var(--accent-green); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -243,7 +252,6 @@
         const isLoggedIn = localStorage.getItem("isTeamMember") === "true";
         let allHackathons = [];
 
-        // --- 👇 SMART THEME TOGGLE LOGIC ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
@@ -258,7 +266,6 @@
             }
         }
 
-        // Apply theme on load
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
             document.getElementById('themeBtn').innerHTML = "🌙";
@@ -267,7 +274,7 @@
         function goToAdd() { if (isLoggedIn) window.location.href = "index.html"; else window.location.href = "login.html"; }
         function logout() { localStorage.removeItem("isTeamMember"); window.location.href = "login.html"; }
 
-        // --- 👇 UPDATED ANIMATION LOGIC (Smart Colors) ---
+        // --- BACKGROUND ANIMATION (Handles Dark/Light Colors) ---
         const canvas = document.getElementById('bg-canvas'); const ctx = canvas.getContext('2d'); let width, height;
         function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; } window.addEventListener('resize', resize); resize();
         const particles = []; const particleCount = 50; 
@@ -289,15 +296,9 @@
             draw() { 
                 ctx.beginPath(); 
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                
-                // 👇 DYNAMIC COLOR SELECTION
+                // Color Logic
                 const isLight = document.body.classList.contains('light-mode');
-                if (isLight) {
-                    ctx.fillStyle = Math.random() > 0.5 ? '#0066cc' : '#333'; // Blue/Black for Light Mode
-                } else {
-                    ctx.fillStyle = Math.random() > 0.5 ? '#00ff88' : '#00d4ff'; // Neon for Dark Mode
-                }
-                
+                ctx.fillStyle = isLight ? (Math.random() > 0.5 ? '#007bff' : '#00a651') : (Math.random() > 0.5 ? '#00ff88' : '#00d4ff');
                 ctx.fill(); 
             } 
         }
@@ -306,17 +307,13 @@
         function animate() { 
             ctx.clearRect(0, 0, width, height); ctx.lineWidth = 0.5; 
             const isLight = document.body.classList.contains('light-mode');
-
             for (let i = 0; i < particleCount; i++) { 
                 let p1 = particles[i]; p1.update(); p1.draw(); 
                 for (let j = i + 1; j < particleCount; j++) { 
                     let p2 = particles[j]; let dx = p1.x - p2.x; let dy = p1.y - p2.y; let dist = Math.sqrt(dx*dx + dy*dy); 
                     if (dist < 120) { 
                         ctx.beginPath(); 
-                        // 👇 DYNAMIC LINE COLOR
-                        if(isLight) ctx.strokeStyle = `rgba(0, 102, 204, ${1 - dist/120})`; // Blue Lines
-                        else ctx.strokeStyle = `rgba(0, 255, 136, ${1 - dist/120})`; // Neon Lines
-                        
+                        ctx.strokeStyle = isLight ? `rgba(0, 123, 255, ${1 - dist/120})` : `rgba(0, 255, 136, ${1 - dist/120})`;
                         ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); 
                     } 
                 } 
