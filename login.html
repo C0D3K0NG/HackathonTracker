@@ -9,6 +9,8 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
+  <script src="assets/js/sessionManager.js"></script>
+
   <style>
     :root{
       --bg:#050505;
@@ -173,6 +175,11 @@
         <button class="eye-btn" id="toggleEye" title="Show/Hide code" aria-pressed="false">SHOW</button>
       </div>
 
+      <div style="display:flex;align-items:center;justify-content:center;margin:15px 0;gap:8px;">
+        <input type="checkbox" id="rememberMe" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent1);">
+        <label for="rememberMe" style="cursor:pointer;font-size:12px;color:#bdeedd;">Remember this device</label>
+      </div>
+
       <button class="btn" id="unlockBtn">INITIALIZE</button>
 
       <div id="errorMsg" role="status" aria-live="polite">Access Denied.</div>
@@ -221,6 +228,7 @@
         const modalBackdrop = document.getElementById('modalBackdrop');
         const forgotLink = document.getElementById('forgotLink');
         const modalClose = document.getElementById('modalClose');
+        const rememberMeCheckbox = document.getElementById('rememberMe');
 
         // --- THREE.JS VARIABLES (Global rakha bhalo) ---
         let scene, camera, renderer, starGeo, stars;
@@ -362,6 +370,31 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
+        // === SESSION ID MANAGEMENT ===
+        function generateSessionId() {
+            return SessionManager.generateSessionId();
+        }
+
+        function saveSession(sessionId) {
+            SessionManager.saveSession(sessionId);
+        }
+
+        function validateSession() {
+            return SessionManager.validateSession();
+        }
+
+        function clearSession() {
+            SessionManager.clearSession();
+        }
+
+        // Check for existing valid session on page load
+        window.addEventListener('load', () => {
+            if (SessionManager.isAuthenticated()) {
+                // Auto-redirect if valid session exists
+                window.location.href = 'dashboard.html';
+            }
+        });
+
         const typeText = async (text, colorClass = 'info') => {
             const line = document.createElement('div');
             line.className = 'line ' + colorClass;
@@ -405,6 +438,16 @@
                 await typeText('> ACCESS GRANTED.', 'success');
                 await typeText('> HYPERSPACE JUMP...', 'success');
                 
+                // Generate and save session if Remember Me is checked
+                if (rememberMeCheckbox.checked) {
+                    const sessionId = generateSessionId();
+                    saveSession(sessionId);
+                } else {
+                    // Just set team member flag without persistent session
+                    sessionStorage.setItem('sessionId', generateSessionId());
+                    localStorage.setItem('isTeamMember', 'true');
+                }
+                
                 // 1. Fade UI
                 container.style.opacity = '0';
                 
@@ -416,7 +459,6 @@
                 whiteFlash.classList.add('active');
 
                 // 4. Redirect
-                localStorage.setItem('isTeamMember', 'true');
                 setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
 
             } else {

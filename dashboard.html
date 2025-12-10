@@ -7,6 +7,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="assets/js/sessionManager.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
@@ -369,11 +370,19 @@
         const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") ? "http://localhost:5000/api/hackathons" : "https://hackathontracker.onrender.com/api/hackathons";
         const listDiv = document.getElementById('hackList');
         const modal = document.getElementById('editModal');
-        const isLoggedIn = localStorage.getItem("isTeamMember") === "true";
+        const isLoggedIn = SessionManager.isAuthenticated();
         let allHackathons = [];
 
+        // Redirect if not authenticated
+        if (!isLoggedIn) {
+            window.location.href = 'login.html';
+        }
+
         function goToAdd() { if (isLoggedIn) window.location.href = "index.html"; else window.location.href = "login.html"; }
-        function logout() { localStorage.removeItem("isTeamMember"); window.location.href = "login.html"; }
+        function logout() { 
+            SessionManager.clearSession();
+            window.location.href = "login.html"; 
+        }
 
         function triggerConfetti() {
             var duration = 3000; var animationEnd = Date.now() + duration; var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
