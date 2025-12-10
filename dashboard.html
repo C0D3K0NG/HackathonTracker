@@ -172,6 +172,11 @@
         .retry-btn { background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .retry-btn:hover { background: #ff6666; box-shadow: 0 0 10px #ff4444; }
 
+        /* BUTTON LOADING STATES */
+        .btn-loading { opacity: 0.7; pointer-events: none; }
+        .btn-loading::after { content: " ..."; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 20% { content: " "; } 40% { content: " ."; } 60% { content: " .."; } 80%, 100% { content: " ..."; } }
+
         /* MOBILE RESPONSIVE */
         @media (max-width: 768px) {
             body { padding: 0; }
@@ -523,7 +528,21 @@
             }, 1000);
         }
 
-        async function deleteHack(id) { if(!confirm("Delete this?")) return; await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); loadHackathons(); }
+        async function deleteHack(id) {
+            if(!confirm("Are you sure? This action cannot be undone.")) return;
+            const btn = event.target;
+            btn.classList.add('btn-loading');
+            btn.disabled = true;
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadHackathons();
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Failed to delete hackathon');
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+            }
+        }
 
         function openEdit(id, name, date, endDate, reg, status, members, cert, photos) {
             document.getElementById('edit-id').value = id;
@@ -542,19 +561,36 @@
         async function saveEdit() {
             const id = document.getElementById('edit-id').value;
             const status = document.getElementById('edit-status').value;
-            if (status === "Winner") triggerConfetti();
-            const updatedData = {
-                name: document.getElementById('edit-name').value,
-                startDate: document.getElementById('edit-date').value,
-                endDate: document.getElementById('edit-end-date').value,
-                teamMembers: document.getElementById('edit-members').value,
-                registered: document.getElementById('edit-reg').value,
-                currentStatus: status,
-                certificate: document.getElementById('edit-cert').value,
-                photos: document.getElementById('edit-photos').value
-            };
-            await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedData) });
-            closeModal(); loadHackathons();
+            const saveBtn = document.querySelector('.save-btn');
+            saveBtn.classList.add('btn-loading');
+            saveBtn.disabled = true;
+
+            try {
+                if (status === "Winner") triggerConfetti();
+                const updatedData = {
+                    name: document.getElementById('edit-name').value,
+                    startDate: document.getElementById('edit-date').value,
+                    endDate: document.getElementById('edit-end-date').value,
+                    teamMembers: document.getElementById('edit-members').value,
+                    registered: document.getElementById('edit-reg').value,
+                    currentStatus: status,
+                    certificate: document.getElementById('edit-cert').value,
+                    photos: document.getElementById('edit-photos').value
+                };
+                const res = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+                if (!res.ok) throw new Error('Update failed');
+                closeModal();
+                loadHackathons();
+            } catch (err) {
+                console.error('Save error:', err);
+                alert('Failed to save changes');
+                saveBtn.classList.remove('btn-loading');
+                saveBtn.disabled = false;
+            }
         }
         loadHackathons();
     </script>
