@@ -172,6 +172,14 @@
         .retry-btn { background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .retry-btn:hover { background: #ff6666; box-shadow: 0 0 10px #ff4444; }
 
+        /* EMPTY STATE */
+        .empty-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 20px; }
+        .empty-icon { color: #00d4ff; font-size: 64px; opacity: 0.5; }
+        .empty-text { color: #888; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 18px; }
+        .empty-subtext { color: #666; font-size: 13px; text-align: center; max-width: 400px; }
+        .empty-cta { background: #00d4ff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .empty-cta:hover { background: #00ff88; box-shadow: 0 0 10px #00d4ff; }
+
         /* BUTTON LOADING STATES */
         .btn-loading { opacity: 0.7; pointer-events: none; }
         .btn-loading::after { content: " ..."; animation: blink 1.5s infinite; }
@@ -467,7 +475,19 @@
 
         function renderList(data) {
             listDiv.innerHTML = "";
-            if (data.length === 0) { listDiv.innerHTML = "<p style='color:#777; text-align:center;'>No match found.</p>"; return; }
+            if (data.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-container">
+                        <i class="fas fa-inbox empty-icon"></i>
+                        <div class="empty-text">No Hackathons Found</div>
+                        <div class="empty-subtext">Start tracking your hackathon journey by adding your first event</div>
+                        <a href="javascript:void(0)" onclick="goToAdd()" class="empty-cta">
+                            <i class="fas fa-plus"></i> Add Your First Hackathon
+                        </a>
+                    </div>
+                `;
+                return;
+            }
 
             data.forEach(hack => {
                 const pptClass = hack.pptNeeded === 'Yes' ? 'yes' : 'no';
