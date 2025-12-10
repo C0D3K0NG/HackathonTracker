@@ -14,7 +14,7 @@
         
         /* 👇 CSS VARIABLES (Color Palette) */
         :root {
-            /* DARK MODE (Default) */
+            /* DARK MODE (Cyberpunk) */
             --bg-color: #050505;
             --text-color: #ffffff;
             --card-bg: rgba(20, 20, 20, 0.7);
@@ -24,20 +24,22 @@
             --accent-cyan: #00d4ff;
             --accent-green: #00ff88;
             --bg-blur: 10px;
+            --canvas-gradient: radial-gradient(circle at center, #111 0%, #000 100%);
             --shadow-color: rgba(0,0,0,0.5);
         }
 
-        /* ☀️ LIGHT MODE OVERRIDES */
+        /* ☀️ LIGHT MODE (Professional Tech) */
         body.light-mode {
-            --bg-color: #f4f6f9;
-            --text-color: #333333;
-            --card-bg: #ffffff;
-            --card-border: #e0e0e0;
+            --bg-color: #eef2f5; /* Soft Grey-Blue (Not blinding white) */
+            --text-color: #1a1a1a;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: #ccd0d5;
             --navbar-bg: rgba(255, 255, 255, 0.9);
             --input-bg: #ffffff;
-            --accent-cyan: #007bff; /* Professional Blue */
-            --accent-green: #28a745; /* Professional Green */
-            --bg-blur: 0px; /* No blur needed */
+            --accent-cyan: #0066cc; /* Darker Blue for visibility */
+            --accent-green: #00a651; /* Darker Green */
+            --bg-blur: 15px;
+            --canvas-gradient: radial-gradient(circle at center, #f0f4f8 0%, #d9e2ec 100%); /* Soft Light Gradient */
             --shadow-color: rgba(0,0,0,0.1);
         }
 
@@ -52,9 +54,13 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Canvas (Hidden in Light Mode) */
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at center, #111 0%, #000 100%); transition: opacity 0.5s; }
-        body.light-mode #bg-canvas { opacity: 0; pointer-events: none; }
+        /* 👇 CANVAS BACKGROUND (Visible in both modes) */
+        #bg-canvas { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: -1; 
+            background: var(--canvas-gradient); /* Dynamic Background */
+            transition: background 0.5s;
+        }
 
         /* NAVBAR */
         .navbar { 
@@ -64,7 +70,7 @@
             position: fixed; top: 0; left: 0; z-index: 100; border-bottom: 1px solid var(--card-border); 
             transition: 0.3s;
         }
-        .nav-left { display: flex; gap: 15px; align-items: center;}
+        .nav-left { display: flex; gap: 15px; }
 
         /* BUTTONS */
         .nav-btn, .team-btn, .auth-btn, .theme-btn { 
@@ -74,16 +80,16 @@
         }
         
         .nav-btn { color: var(--accent-green); border-color: var(--accent-green); } 
-        .nav-btn:hover { background: var(--accent-green); color: #000; box-shadow: 0 0 10px var(--accent-green); }
+        .nav-btn:hover { background: var(--accent-green); color: #fff; box-shadow: 0 0 10px var(--accent-green); }
 
         .team-btn { color: var(--accent-cyan); border-color: var(--accent-cyan); } 
-        .team-btn:hover { background: var(--accent-cyan); color: #000; box-shadow: 0 0 10px var(--accent-cyan); }
+        .team-btn:hover { background: var(--accent-cyan); color: #fff; box-shadow: 0 0 10px var(--accent-cyan); }
 
         .auth-btn { color: #ff4444; border-color: #ff4444; } 
         .auth-btn:hover { background: #ff4444; color: white; box-shadow: 0 0 10px #ff4444; }
 
-        /* 👇 THEME TOGGLE BUTTON */
-        .theme-btn { color: var(--text-color); border-color: var(--card-border); }
+        /* Theme Toggle */
+        .theme-btn { color: var(--text-color); border-color: var(--card-border); background: var(--card-bg); }
         .theme-btn:hover { background: var(--card-border); }
 
         .main-content { margin-top: 100px; width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -124,39 +130,39 @@
         .status-Interested { border-top-color: var(--accent-green); } 
         .status-Rejected { border-top-color: #ff4444; opacity: 0.8; }
 
-        .title { font-size: 20px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; line-height: 1.4; color: var(--text-color); }
-        .organizer { font-size: 12px; color: #888; margin-bottom: 15px; display: block; }
+        .title { font-size: 22px; font-weight: 800; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; color: var(--text-color); }
+        .organizer { font-size: 13px; color: #888; margin-bottom: 15px; display: block; }
         
         .countdown-timer { 
-            font-family: 'Orbitron', sans-serif; font-size: 13px; color: #b8860b; /* Dark gold for visibility */
+            font-family: 'Orbitron', sans-serif; font-size: 14px; color: #b8860b; 
             background: rgba(255, 235, 59, 0.1); padding: 5px 10px; 
             border-radius: 5px; display: inline-block; margin-bottom: 10px; 
             border: 1px solid rgba(255, 235, 59, 0.5); 
         }
         body:not(.light-mode) .countdown-timer { color: #ffeb3b; border-color: rgba(255, 235, 59, 0.3); }
 
-        .date-highlight { font-size: 13px; font-weight: bold; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-color); opacity: 0.8; }
+        .date-highlight { font-size: 14px; font-weight: bold; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-color); opacity: 0.8; }
         
-        .badge { font-size: 10px; padding: 4px 8px; border-radius: 5px; background: #222; border: 1px solid #444; color: #fff; }
-        .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold; }
+        .badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #222; border: 1px solid #444; color: #fff; }
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold; }
 
         .team-section { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px dashed var(--card-border); }
-        .team-status { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+        .team-status { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
         .status-full { color: #ff4444; } .status-open { color: var(--accent-green); }
-        .member-list { font-size: 11px; color: var(--text-color); font-style: italic; opacity: 0.7; }
+        .member-list { font-size: 12px; color: var(--text-color); font-style: italic; opacity: 0.7; }
         
         .proof-btn, .calendar-btn { background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 10px; font-family: 'Poppins'; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s; }
         .proof-btn:hover { background: var(--accent-cyan); color: #fff; }
         .calendar-btn { border-color: #ffc107; color: #ffc107; } .calendar-btn:hover { background: #ffc107; color: #000; }
 
-        .btn-group { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
-        .visit-btn { flex: 1; text-align: center; background: #333; color: #fff; padding: 8px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 11px; border: 1px solid #555; transition: 0.3s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .visit-btn { flex: 1; text-align: center; background: #333; color: #fff; padding: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; border: 1px solid #555; transition: 0.3s; }
         .visit-btn:hover { background: #fff; color: #000; }
         .report-btn { background: #fff; color: #000; border: none; font-weight: 800; } 
         body.light-mode .report-btn { background: #333; color: #fff; }
 
-        .action-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .action-btn { background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; }
         .edit-btn:hover { background: #ffeb3b; color: #000; border-color: #ffeb3b; } .delete-btn:hover { background: #ff4444; color: white; border-color: #ff4444; }
 
         /* MODAL */
@@ -167,12 +173,9 @@
         .save-btn { flex: 1; background: var(--accent-green); border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .cancel-btn { flex: 1; background: #333; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
         
-        .footer { margin-top: 20px; font-size: 12px; color: #888; font-family: 'Orbitron', sans-serif; padding-bottom: 20px; }
+        .footer { margin-top: 20px; font-size: 14px; color: #888; font-family: 'Orbitron', sans-serif; padding-bottom: 20px; }
         .footer span { color: var(--accent-green); font-weight: bold; }
 
-        /* Media Queries */
-        @media (max-width: 768px) { .navbar { padding: 12px 15px; } .nav-left { display: none; } .hamburger { display: flex; margin-left: auto; margin-right: 10px; color: var(--accent-green); border: none; background: none; font-size: 24px; cursor: pointer;} .filter-container { width: 95%; } .list-container { width: 95%; grid-template-columns: 1fr; } }
-        
         /* Loading */
         .loading-container { text-align: center; margin-top: 50px; }
         .spinner { border: 3px solid rgba(0, 255, 136, 0.2); border-top: 3px solid var(--accent-green); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
@@ -191,11 +194,9 @@
         
         <div style="display:flex; gap:10px; align-items:center; margin-left: auto;">
             <button onclick="toggleTheme()" class="theme-btn" id="themeBtn">☀️</button>
-            
             <button onclick="logout()" class="auth-btn"><i class="fas fa-sign-out-alt"></i> LOGOUT</button>
         </div>
-        
-        </div>
+    </div>
 
     <div class="main-content">
         <h2><i class="fas fa-rocket"></i> UPCOMING EVENTS</h2>
@@ -242,22 +243,22 @@
         const isLoggedIn = localStorage.getItem("isTeamMember") === "true";
         let allHackathons = [];
 
-        // --- 👇 THEME TOGGLE LOGIC ---
+        // --- 👇 SMART THEME TOGGLE LOGIC ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             body.classList.toggle('light-mode');
             
             if (body.classList.contains('light-mode')) {
-                btn.innerHTML = "🌙"; // Switch to Moon icon
+                btn.innerHTML = "🌙";
                 localStorage.setItem('theme', 'light');
             } else {
-                btn.innerHTML = "☀️"; // Switch to Sun icon
+                btn.innerHTML = "☀️";
                 localStorage.setItem('theme', 'dark');
             }
         }
 
-        // Apply saved theme on load
+        // Apply theme on load
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
             document.getElementById('themeBtn').innerHTML = "🌙";
@@ -266,13 +267,63 @@
         function goToAdd() { if (isLoggedIn) window.location.href = "index.html"; else window.location.href = "login.html"; }
         function logout() { localStorage.removeItem("isTeamMember"); window.location.href = "login.html"; }
 
-        // --- ANIMATION SCRIPT ---
+        // --- 👇 UPDATED ANIMATION LOGIC (Smart Colors) ---
         const canvas = document.getElementById('bg-canvas'); const ctx = canvas.getContext('2d'); let width, height;
         function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; } window.addEventListener('resize', resize); resize();
         const particles = []; const particleCount = 50; 
-        class Particle { constructor() { this.reset(); } reset() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; this.color = Math.random() > 0.5 ? '#00ff88' : '#00d4ff'; } update() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); } }
+        
+        class Particle { 
+            constructor() { this.reset(); } 
+            reset() { 
+                this.x = Math.random() * width; 
+                this.y = Math.random() * height; 
+                this.vx = (Math.random() - 0.5) * 0.5; 
+                this.vy = (Math.random() - 0.5) * 0.5; 
+                this.size = Math.random() * 2; 
+            } 
+            update() { 
+                this.x += this.vx; this.y += this.vy; 
+                if (this.x < 0 || this.x > width) this.vx *= -1; 
+                if (this.y < 0 || this.y > height) this.vy *= -1; 
+            } 
+            draw() { 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                
+                // 👇 DYNAMIC COLOR SELECTION
+                const isLight = document.body.classList.contains('light-mode');
+                if (isLight) {
+                    ctx.fillStyle = Math.random() > 0.5 ? '#0066cc' : '#333'; // Blue/Black for Light Mode
+                } else {
+                    ctx.fillStyle = Math.random() > 0.5 ? '#00ff88' : '#00d4ff'; // Neon for Dark Mode
+                }
+                
+                ctx.fill(); 
+            } 
+        }
         for (let i = 0; i < particleCount; i++) { particles.push(new Particle()); }
-        function animate() { ctx.clearRect(0, 0, width, height); ctx.lineWidth = 0.5; for (let i = 0; i < particleCount; i++) { let p1 = particles[i]; p1.update(); p1.draw(); for (let j = i + 1; j < particleCount; j++) { let p2 = particles[j]; let dx = p1.x - p2.x; let dy = p1.y - p2.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.strokeStyle = `rgba(0, 255, 136, ${1 - dist/120})`; ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); } } } requestAnimationFrame(animate); } animate();
+        
+        function animate() { 
+            ctx.clearRect(0, 0, width, height); ctx.lineWidth = 0.5; 
+            const isLight = document.body.classList.contains('light-mode');
+
+            for (let i = 0; i < particleCount; i++) { 
+                let p1 = particles[i]; p1.update(); p1.draw(); 
+                for (let j = i + 1; j < particleCount; j++) { 
+                    let p2 = particles[j]; let dx = p1.x - p2.x; let dy = p1.y - p2.y; let dist = Math.sqrt(dx*dx + dy*dy); 
+                    if (dist < 120) { 
+                        ctx.beginPath(); 
+                        // 👇 DYNAMIC LINE COLOR
+                        if(isLight) ctx.strokeStyle = `rgba(0, 102, 204, ${1 - dist/120})`; // Blue Lines
+                        else ctx.strokeStyle = `rgba(0, 255, 136, ${1 - dist/120})`; // Neon Lines
+                        
+                        ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); 
+                    } 
+                } 
+            } 
+            requestAnimationFrame(animate); 
+        } 
+        animate();
 
         function triggerConfetti() {
             var duration = 3000; var animationEnd = Date.now() + duration; var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
@@ -280,25 +331,21 @@
             var interval = setInterval(function() { var timeLeft = animationEnd - Date.now(); if (timeLeft <= 0) return clearInterval(interval); var particleCount = 50 * (timeLeft / duration); confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })); confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })); }, 250);
         }
 
-        // --- HELPER: CALENDAR LINK ---
         function generateCalendarLink(name, start, end, location) {
             const s = start.replace(/-/g, '');
             const e = end.replace(/-/g, '');
             return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name)}&dates=${s}/${e}&details=Hackathon+Event&location=${encodeURIComponent(location)}`;
         }
 
-        // --- HELPER: CHECK ALERTS ---
         function checkReminders(data) {
             const container = document.getElementById('reminder-container');
             container.innerHTML = "";
             let hasAlerts = false;
             const today = new Date();
-            
             data.forEach(hack => {
                 const eventDate = new Date(hack.startDate);
                 const diffTime = eventDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
                 if (diffDays >= 0 && diffDays <= 7) {
                     hasAlerts = true;
                     container.style.display = "flex";
