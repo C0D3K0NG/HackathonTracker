@@ -171,6 +171,13 @@
     .sound-btn:hover {
         background: #00ff88; color: #000; box-shadow: 0 0 10px #00ff88;
     }
+  .sound-btn:hover {
+        background: #00ff88; color: #000; box-shadow: 0 0 10px #00ff88;
+    }
+
+    /* --- UX ADD-ONS --- */
+    .cooldown{ height:2px; background: rgba(0,212,255,0.15); border-radius:2px; overflow:hidden; margin-top:8px; }
+    .cooldown-inner{ height:100%; width:0%; background: var(--accent2); box-shadow: 0 0 8px rgba(0,212,255,0.6); }
   </style>
 </head>
 <body>
@@ -198,12 +205,16 @@
 
       <div style="display:flex;align-items:center;justify-content:center;margin:15px 0;gap:8px;">
         <input type="checkbox" id="rememberMe" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent1);">
-        <label for="rememberMe" style="cursor:pointer;font-size:12px;color:#bdeedd;">Remember this device</label>
+        <label for="rememberMe" title="Stores a local session token on this device for faster access. You can revoke it anytime." style="cursor:pointer;font-size:12px;color:#bdeedd;">Remember this device</label>
       </div>
 
-      <button class="btn" id="unlockBtn">INITIALIZE</button>
+      <button class="btn" id="unlockBtn" aria-busy="false">INITIALIZE</button>
+      <div id="enterHint" class="hint" style="display:none;margin-top:6px;">Press Enter to initialize</div>
+      <div id="cooldown" class="cooldown" aria-hidden="true" style="display:none;">
+        <div class="cooldown-inner"></div>
+      </div>
 
-      <div id="errorMsg" role="status" aria-live="polite">Access Denied.</div>
+      <div id="errorMsg" role="status" aria-live="assertive">Access Denied.</div>
 
       <div class="links">
         <a href="dashboard.html" class="back-link">Guest View →</a>
@@ -250,6 +261,9 @@
         const forgotLink = document.getElementById('forgotLink');
         const modalClose = document.getElementById('modalClose');
         const rememberMeCheckbox = document.getElementById('rememberMe');
+        const enterHint = document.getElementById('enterHint');
+        const cooldownBar = document.getElementById('cooldown');
+        const cooldownInner = document.querySelector('#cooldown .cooldown-inner');
 
         // --- THREE.JS VARIABLES (Global rakha bhalo) ---
         let scene, camera, renderer, starGeo, stars;
@@ -427,6 +441,28 @@
             }
         };
 
+        // cooldown helper
+        function startCooldown(duration = 1500){
+            const bar = cooldownBar, inner = cooldownInner;
+            if(!bar || !inner) return;
+            bar.style.display = 'block';
+            bar.setAttribute('aria-hidden', 'false');
+            inner.style.transition = 'none';
+            inner.style.width = '0%';
+            void inner.offsetWidth;
+            inner.style.transition = `width ${duration}ms linear`;
+            inner.style.width = '100%';
+            unlockBtn.setAttribute('aria-busy', 'true');
+            setTimeout(() => {
+                bar.style.display = 'none';
+                bar.setAttribute('aria-hidden', 'true');
+                inner.style.transition = 'none';
+                inner.style.width = '0%';
+                unlockBtn.disabled = false;
+                unlockBtn.setAttribute('aria-busy', 'false');
+            }, duration);
+        }
+
         async function handleLogin(){
             const inputVal = passInput.value.trim();
             if(!inputVal) return;
@@ -491,14 +527,18 @@
                 
                 overlay.classList.remove('show');
                 
-                unlockBtn.disabled = false;
                 passInput.disabled = false;
                 passInput.value = '';
                 passInput.focus();
+                passInput.setAttribute('aria-invalid', 'true');
                 
                 container.classList.add('glitch-mode');
                 errorMsg.style.display = 'block';
                 errorMsg.textContent = 'Invalid Credentials.';
+                
+                // cooldown and re-enable
+                unlockBtn.disabled = true;
+                startCooldown(1500);
                 
                 setTimeout(() => { container.classList.remove('glitch-mode'); }, 500);
             }
@@ -506,17 +546,82 @@
 
         unlockBtn.addEventListener('click', handleLogin);
         passInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
-        document.getElementById('toggleEye').addEventListener('click', (e) => {
+        // Enter hint toggle and clear aria-invalid when typing
+        passInput.addEventListener('input', () => {
+            if (!enterHint) return;
+            const hasVal = passInput.value.trim().length > 0;
+            enterHint.style.display = hasVal ? 'block' : 'none';
+            if (hasVal) passInput.removeAttribute('aria-invalid');
+        });
+        const eyeBtn = document.getElementById('toggleEye');
+        let holdReveal = false;
+        let holdReleasedAt = 0;
+        let prevType = 'password';
+
+        eyeBtn.addEventListener('click', (e) => {
+            if (Date.now() - holdReleasedAt < 200) return; // ignore click right after hold
             const isPass = passInput.type === 'password';
             passInput.type = isPass ? 'text' : 'password';
-            e.target.textContent = isPass ? 'HIDE' : 'SHOW';
+            eyeBtn.textContent = isPass ? 'HIDE' : 'SHOW';
         });
-        forgotLink.addEventListener('click', (e) => { e.preventDefault(); modalBackdrop.style.display = 'flex'; });
-        modalClose.addEventListener('click', () => { modalBackdrop.style.display = 'none'; });
-        modalBackdrop.addEventListener('click', (e) => { if(e.target === modalBackdrop) modalBackdrop.style.display = 'none'; });
+        const beginHoldReveal = () => { if (holdReveal) return; holdReveal = true; prevType = passInput.type; passInput.type = 'text'; };
+        const endHoldReveal = () => { if (!holdReveal) return; passInput.type = prevType; holdReveal = false; holdReleasedAt = Date.now(); };
+        eyeBtn.addEventListener('mousedown', beginHoldReveal);
+        eyeBtn.addEventListener('mouseleave', endHoldReveal);
+        eyeBtn.addEventListener('mouseup', endHoldReveal);
+        eyeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); beginHoldReveal(); }, { passive: false });
+        eyeBtn.addEventListener('touchend', () => endHoldReveal());
+        // Modal focus trap + ESC
+        let lastFocusedBeforeModal = null;
+        let modalKeydownHandler = null;
+        const getFocusable = (root) => root.querySelectorAll('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
+        function openModal(){
+            lastFocusedBeforeModal = document.activeElement;
+            modalBackdrop.style.display = 'flex';
+            modalBackdrop.setAttribute('aria-hidden', 'false');
+            const focusables = getFocusable(modalBackdrop);
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1] || modalClose;
+            (modalClose || first)?.focus();
+            modalKeydownHandler = (e) => {
+                if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+                if (e.key === 'Tab' && focusables.length) {
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+            };
+            document.addEventListener('keydown', modalKeydownHandler);
+        }
+        function closeModal(){
+            modalBackdrop.style.display = 'none';
+            modalBackdrop.setAttribute('aria-hidden', 'true');
+            document.removeEventListener('keydown', modalKeydownHandler);
+            if (lastFocusedBeforeModal) lastFocusedBeforeModal.focus();
+        }
+        forgotLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+        modalClose.addEventListener('click', () => { closeModal(); });
+        modalBackdrop.addEventListener('click', (e) => { if(e.target === modalBackdrop) closeModal(); });
 
         passInput.focus();
         setTimeout(() => container.classList.add('enter'), 100);
+
+        // --- IST GREETING LOGIC ---
+        (function setISTGreeting(){
+            const el = document.getElementById('greetingText');
+            if(!el) return;
+            try {
+                const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+                const h = nowIST.getHours();
+                let msg = 'System Offline';
+                if (h >= 6 && h < 12) msg = 'Morning protocol online.';
+                else if (h >= 12 && h < 15) msg = 'Peak-hour performance mode active.';
+                else if (h >= 15 && h < 20) msg = 'Evening cycle initiated.';
+                else if (h >= 20 && h <= 23) msg = 'System ready to enter dark mode.';
+                else if (h >= 0 && h < 4) msg = 'System running on caffeine.';
+                else if (h >= 4 && h < 6) msg = 'Early-light mode active.';
+                el.textContent = msg;
+            } catch(_) {}
+        })();
         // --- AUDIO SYSTEM ---
         const soundBtn = document.getElementById('soundToggle');
         const bgMusic = document.getElementById('bgMusic');
