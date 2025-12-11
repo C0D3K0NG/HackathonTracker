@@ -67,17 +67,21 @@
             padding: 30px;
             text-align: center;
             width: 250px;
-            transition: 0.4s;
+            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+            transform-style: preserve-3d;
             position: relative;
             overflow: hidden;
             opacity: 0;
+            will-change: transform, box-shadow;
         }
 
-        /* CARD HOVER */
+        /* Base state shadow */
+        .member-card { box-shadow: 0 8px 18px rgba(0,0,0,0.35); }
+        .member-card .tilt-inner { transform-style: preserve-3d; transition: transform 220ms ease; will-change: transform; }
+
+        /* Hover emphasis (still used when JS not active) */
         .member-card:hover { 
-            transform: translateY(-10px) scale(1.02); 
             border-color: #00d4ff; 
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); 
         }
         .member-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #00ff88, #00d4ff); }
 
@@ -159,7 +163,8 @@
         <div class="team-container">
             
             <div class="member-card card-observe">
-                <img src="assets/Debopam_Image.jpg" alt="Profile" class="profile-pic">
+                <div class="tilt-inner">
+                    <img src="assets/Debopam_Image.jpg" alt="Profile" class="profile-pic">
                 <div class="name">Debopam Ghosh</div>
                 <span class="role">Backend Systems and Machine Learning</span>
                 <p class="bio">AOT CSBS undergrad | Backend Development | Machine Learning | Devops</p>
@@ -168,22 +173,26 @@
                     <a href="https://github.com/debopamghosh12" class="social-btn" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="mailto:debopamghosh2004@gmail.com" class="social-btn" title="Email"><i class="fas fa-envelope"></i></a>
                 </div>
+                </div>
             </div>
 
             <div class="member-card card-observe">
-                <img src="assets/Rajdeep_image.jpg" alt="Profile" class="profile-pic">
+                <div class="tilt-inner">
+                    <img src="assets/Rajdeep_image.jpg" alt="Profile" class="profile-pic">
                 <div class="name">Rajdeep Saha</div>
                 <span class="role">Python Developer and CyberSecurity Expert</span>
-                <p class="bio">AOT CSBS undergrad | GFG Ambassador | Python | Offensive Security | Automation</p>
+                <p class="bio">AOT CSBS undergrad | GFG Ambassador | Python | Offensive Security | Automation | Networking | Offsec</p>
                 <div class="social-links">
                     <a href="https://www.linkedin.com/in/rajdeep-saha-b92452292/" class="social-btn" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
                     <a href="https://github.com/C0D3K0NG" class="social-btn" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="mailto:1rajofficial0@gmail.com" class="social-btn" title="Email"><i class="fas fa-envelope"></i></a>
                 </div>
+                </div>
             </div>
 
             <div class="member-card card-observe">
-                <img src="assets/harsh.jpg" alt="Profile" class="profile-pic">
+                <div class="tilt-inner">
+                    <img src="assets/harsh.jpg" alt="Profile" class="profile-pic">
                 <div class="name">Harsvardhan Rajgarhia</div>
                 <span class="role">Data Analysis and Machine Learning</span>
                 <p class="bio">AOT CSBS Undergrad | Machine Learning | Data Analysis | TSEC'25 Winner</p>
@@ -191,6 +200,7 @@
                     <a href="http://www.linkedin.com/in/harshvardhan-rajgarhia-ba62982a4" class="social-btn" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
                     <a href="https://github.com/Harsh1574" class="social-btn" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="mailto:harsvardhanrajgarhia@gmail.com" class="social-btn" title="Email"><i class="fas fa-envelope"></i></a>
+                </div>
                 </div>
             </div>
 
@@ -281,6 +291,85 @@
         }
 
         animate();
+    </script>
+
+    <script>
+        // 3D tilt interaction for member cards
+        (function() {
+            const cards = document.querySelectorAll('.member-card');
+            const perspective = 800; // lower => more dramatic
+            const maxRotate = 12;    // degrees
+            const maxLift = 18;      // px translateZ
+            const scaleOnHover = 1.04;
+
+            // Wrap container to give perspective context
+            const container = document.querySelector('.team-container');
+            if (container) {
+                container.style.perspective = perspective + 'px';
+                container.style.perspectiveOrigin = '50% 50%';
+            }
+
+            cards.forEach(card => {
+                let rafId = null;
+                let current = { rx: 0, ry: 0, scale: 1, z: 0 };
+                let target = { rx: 0, ry: 0, scale: 1, z: 0 };
+                const inner = card.querySelector('.tilt-inner');
+
+                const animate = () => {
+                    // simple lerp for smoothness
+                    current.rx += (target.rx - current.rx) * 0.12;
+                    current.ry += (target.ry - current.ry) * 0.12;
+                    current.scale += (target.scale - current.scale) * 0.12;
+                    current.z += (target.z - current.z) * 0.12;
+                    if (inner) inner.style.transform = `rotateX(${current.rx}deg) rotateY(${current.ry}deg) translateZ(${current.z}px) scale(${current.scale})`;
+                    rafId = requestAnimationFrame(animate);
+                };
+
+                const onEnter = () => {
+                    target.scale = scaleOnHover;
+                    target.z = maxLift;
+                    card.style.borderColor = '#00d4ff';
+                };
+
+                const onMove = (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    const dx = (e.clientX - cx) / (rect.width / 2);  // -1..1
+                    const dy = (e.clientY - cy) / (rect.height / 2); // -1..1
+
+                    // Invert X for natural direction: mouse right => tilt right
+                    target.ry = dx * maxRotate;
+                    // Slight X tilt for vertical move (towards/away)
+                    target.rx = -dy * (maxRotate * 0.6);
+
+                    // Dynamic shadow based on dx
+                    const shadowX = -dx * 20;
+                    const shadowY = 18;
+                    const blur = 30;
+                    const spread = 0;
+                    const alpha = 0.35 + Math.abs(dx) * 0.15;
+                    card.style.boxShadow = `${shadowX}px ${shadowY}px ${blur}px ${spread}px rgba(0,0,0,${alpha})`;
+                };
+
+                const onLeave = () => {
+                    target.rx = 0;
+                    target.ry = 0;
+                    target.scale = 1;
+                    target.z = 0;
+                    card.style.borderColor = '#333';
+                    card.style.boxShadow = '0 8px 18px rgba(0,0,0,0.35)';
+                };
+
+                // Pointer events
+                card.addEventListener('mouseenter', onEnter);
+                card.addEventListener('mousemove', onMove);
+                card.addEventListener('mouseleave', onLeave);
+
+                // Start animation loop per card
+                rafId = requestAnimationFrame(animate);
+            });
+        })();
     </script>
 
     <!-- FLOATING ACTION BUTTON -->
