@@ -442,61 +442,107 @@
         }
 
         function renderList(data) {
-            listDiv.innerHTML = "";
-            if (data.length === 0) {
-                listDiv.innerHTML = `<div class="empty-container"><i class="fas fa-inbox empty-icon"></i><div class="empty-text">No Hackathons Found</div><a href="javascript:void(0)" onclick="goToAdd()" class="empty-cta"><i class="fas fa-plus"></i> Add Event</a></div>`;
-                return;
+    listDiv.innerHTML = "";
+    if (data.length === 0) { listDiv.innerHTML = "<p style='text-align:center; opacity:0.6;'>No match found.</p>"; return; }
+
+    data.forEach(hack => {
+        const pptClass = hack.pptNeeded === 'Yes' ? 'yes' : 'no';
+        const regClass = hack.registered === 'Yes' ? 'yes' : 'no';
+        const currentStatus = hack.currentStatus || 'Interested'; const statusClass = `status-${currentStatus}`;
+        let membersList = hack.teamMembers ? hack.teamMembers.split(',').map(s => s.trim()).filter(s => s) : [];
+        let vacancy = hack.teamSize - membersList.length;
+        let statusText = vacancy > 0 ? `<i class="fas fa-check-circle" style="color:var(--accent-green)"></i> ${vacancy} Slot(s) Open` : `<i class="fas fa-times-circle" style="color:var(--danger)"></i> Team Full`;
+        let statusColorClass = vacancy > 0 ? 'status-open' : 'status-full';
+
+        const adminButtons = isLoggedIn ? `
+            <button class="action-btn edit-btn" onclick="openEdit('${hack._id}', '${hack.name}', '${hack.startDate}', '${hack.endDate}', '${hack.registered}', '${currentStatus}', '${hack.teamMembers || ''}', '${hack.certificate || ''}', '${hack.photos || ''}')"><i class="fas fa-pencil-alt"></i></button>
+            <button class="action-btn delete-btn" onclick="deleteHack('${hack._id}')"><i class="fas fa-trash-alt"></i></button>` : '';
+
+        const certBtn = hack.certificate ? `<a href="${hack.certificate}" target="_blank" class="proof-btn"><i class="fas fa-certificate"></i> Cert</a>` : '';
+        const photoBtn = hack.photos ? `<a href="${hack.photos}" target="_blank" class="proof-btn"><i class="fas fa-images"></i> Photos</a>` : '';
+        const calLink = generateCalendarLink(hack.name, hack.startDate, hack.endDate, hack.location);
+
+        const card = `
+            <div class="hackathon-card ${statusClass}">
+                <div class="title">${hack.name}</div>
+                
+                <div class="countdown-timer" id="timer-${hack._id}" data-start="${hack.startDate}" data-end="${hack.endDate}">Loading...</div>
+
+                <div class="date-highlight"><i class="fas fa-calendar"></i> ${hack.startDate} <span style="font-size:12px; opacity:0.7; margin:0 5px;">to</span> ${hack.endDate}</div>
+                <span class="organizer">By ${hack.organizer}</span>
+                <div class="info-row"><span><i class="fas fa-map-marker-alt"></i> ${hack.location} (${hack.mode})</span></div>
+                <div style="margin-top: 10px; display:flex; gap:5px;">
+                    <span class="badge ${pptClass}">PPT: ${hack.pptNeeded}</span>
+                    <span class="badge ${regClass}">Reg: ${hack.registered}</span>
+                    <span class="status-badge"><i class="fas fa-traffic-light"></i> ${currentStatus}</span>
+                </div>
+                <div class="team-section">
+                    <span class="team-status ${statusColorClass}">${statusText} (${membersList.length}/${hack.teamSize})</span>
+                    <div class="member-list">${membersList.length > 0 ? membersList.join(', ') : 'No members yet'}</div>
+                </div>
+                <div style="margin-top:10px; display:flex; gap:5px; flex-wrap:wrap;">
+                    ${certBtn} ${photoBtn}
+                    <a href="${calLink}" target="_blank" class="calendar-btn"><i class="fas fa-calendar-plus"></i> Remind Me</a>
+                </div>
+                <div class="btn-group">
+                    <a href="${hack.link}" target="_blank" class="visit-btn">VISIT LINK ↗</a>
+                    <a href="report.html?id=${hack._id}" target="_blank" class="visit-btn report-btn"><i class="fas fa-file-alt"></i> REPORT</a>
+                    ${adminButtons}
+                </div>
+            </div>`;
+        listDiv.innerHTML += card;
+    });
+    startCountdown();
+}
+
+        function startCountdown() {
+        setInterval(() => {
+        const timers = document.querySelectorAll('.countdown-timer');
+        timers.forEach(timer => {
+            const startDateStr = timer.getAttribute('data-start');
+            const endDateStr = timer.getAttribute('data-end');
+            
+            // Dates convert kora (Set time to midnight/end of day)
+            const startDate = new Date(startDateStr).getTime();
+            
+            // End Date ke oi diner shesh (23:59:59) dhora holo
+            let endDate = new Date(endDateStr);
+            endDate.setHours(23, 59, 59, 999);
+            endDate = endDate.getTime();
+
+            const now = new Date().getTime();
+            const distance = startDate - now;
+
+            // 👇 LOGIC: Ended vs Started vs Upcoming
+            if (now > endDate) {
+                // Event Shesh
+                timer.innerHTML = `<i class="fas fa-flag-checkered"></i> EVENT ENDED`;
+                timer.style.color = "#888"; // Grey color
+                timer.style.borderColor = "#888";
+                timer.style.background = "rgba(136, 136, 136, 0.1)";
+            } else if (now >= startDate && now <= endDate) {
+                // Event Cholche
+                timer.innerHTML = `<i class="fas fa-circle-play"></i> EVENT STARTED`;
+                timer.style.color = "#ff4444"; // Red color
+                timer.style.borderColor = "#ff4444";
+                timer.style.background = "rgba(255, 68, 68, 0.1)";
+            } else {
+                // Event Ashche (Countdown)
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timer.innerHTML = `<i class="fas fa-hourglass-half" style="margin-right:5px;"></i>${days}d ${hours}h ${minutes}m ${seconds}s`;
+                
+                // Reset styling for countdown
+                const isLight = document.body.classList.contains('light-mode');
+                timer.style.color = isLight ? "#b8860b" : "#ffeb3b";
+                timer.style.borderColor = isLight ? "rgba(255, 235, 59, 0.5)" : "rgba(255, 235, 59, 0.3)";
+                timer.style.background = isLight ? "rgba(255, 235, 59, 0.15)" : "rgba(255, 235, 59, 0.1)";
             }
-
-            data.forEach(hack => {
-                const pptClass = hack.pptNeeded === 'Yes' ? 'yes' : 'no';
-                const regClass = hack.registered === 'Yes' ? 'yes' : 'no';
-                const currentStatus = hack.currentStatus || 'Interested'; const statusClass = `status-${currentStatus}`;
-                let membersList = hack.teamMembers ? hack.teamMembers.split(',').map(s => s.trim()).filter(s => s) : [];
-                let vacancy = hack.teamSize - membersList.length;
-                let statusText = vacancy > 0 ? `<i class="fas fa-check-circle" style="color:var(--secondary)"></i> ${vacancy} Slot(s) Open` : `<i class="fas fa-times-circle" style="color:var(--danger)"></i> Team Full`;
-                let statusColorClass = vacancy > 0 ? 'status-open' : 'status-full';
-
-                const adminButtons = isLoggedIn ? `
-                    <button class="action-btn edit-btn" onclick="openEdit('${hack._id}', '${hack.name}', '${hack.startDate}', '${hack.endDate}', '${hack.registered}', '${currentStatus}', '${hack.teamMembers || ''}', '${hack.certificate || ''}', '${hack.photos || ''}')"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="action-btn delete-btn" onclick="deleteHack('${hack._id}')"><i class="fas fa-trash-alt"></i></button>` : '';
-
-                const certBtn = hack.certificate ? `<a href="${hack.certificate}" target="_blank" class="proof-btn"><i class="fas fa-certificate"></i> Cert</a>` : '';
-                const photoBtn = hack.photos ? `<a href="${hack.photos}" target="_blank" class="proof-btn"><i class="fas fa-images"></i> Photos</a>` : '';
-                const calLink = generateCalendarLink(hack.name, hack.startDate, hack.endDate, hack.location);
-
-                const card = `
-                    <div class="hackathon-card ${statusClass}">
-                        <div class="title">${hack.name}</div>
-                        <div class="countdown-timer" id="timer-${hack._id}" data-date="${hack.startDate}">Loading...</div>
-                        <div class="date-highlight"><i class="fas fa-calendar"></i> ${hack.startDate} <span style="font-size:12px; opacity:0.7; margin:0 5px;">to</span> ${hack.endDate}</div>
-                        <span class="organizer">By ${hack.organizer}</span>
-                        <div class="info-row"><span><i class="fas fa-map-marker-alt"></i> ${hack.location} (${hack.mode})</span></div>
-                        <div style="margin-top: 10px; display:flex; gap:5px;">
-                            <span class="badge ${pptClass}">PPT: ${hack.pptNeeded}</span>
-                            <span class="badge ${regClass}">Reg: ${hack.registered}</span>
-                            <span class="status-badge"><i class="fas fa-traffic-light"></i> ${currentStatus}</span>
-                        </div>
-                        <div class="team-section">
-                            <span class="team-status ${statusColorClass}">${statusText} (${membersList.length}/${hack.teamSize})</span>
-                            <div class="member-list">${membersList.length > 0 ? membersList.join(', ') : 'No members yet'}</div>
-                        </div>
-                        <div style="margin-top:10px; display:flex; gap:5px; flex-wrap:wrap;">
-                            ${certBtn} ${photoBtn} 
-                            <a href="${calLink}" target="_blank" class="calendar-btn"><i class="fas fa-calendar-plus"></i> Remind</a>
-                        </div>
-                        <div class="btn-group">
-                            <a href="${hack.link}" target="_blank" class="visit-btn">VISIT LINK ↗</a>
-                            <a href="report.html?id=${hack._id}" target="_blank" class="visit-btn report-btn"><i class="fas fa-file-alt"></i> REPORT</a>
-                            ${adminButtons}
-                        </div>
-                    </div>`;
-                listDiv.innerHTML += card;
-            });
-            startCountdown();
-        }
-
-        function startCountdown() { setInterval(() => { const timers = document.querySelectorAll('.countdown-timer'); timers.forEach(timer => { const eventDate = new Date(timer.getAttribute('data-date')).getTime(); const now = new Date().getTime(); const distance = eventDate - now; if (distance < 0) { timer.innerHTML = `<i class="fas fa-times-circle"></i> EVENT STARTED`; timer.style.color = "#ff4444"; timer.style.borderColor = "#ff4444"; } else { const days = Math.floor(distance / (1000 * 60 * 60 * 24)); const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((distance % (1000 * 60)) / 1000); timer.innerHTML = `<i class="fas fa-hourglass-end" style="margin-right:5px;"></i>${days}d ${hours}h ${minutes}m ${seconds}s`; } }); }, 1000); }
+        });
+    }, 1000);
+}
         async function deleteHack(id) { if(!confirm("Are you sure?")) return; try { await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); loadHackathons(); } catch (err) { console.error('Delete error:', err); alert('Failed to delete hackathon'); } }
         function openEdit(id, name, date, endDate, reg, status, members, cert, photos) { document.getElementById('edit-id').value = id; document.getElementById('edit-name').value = name; document.getElementById('edit-date').value = date; document.getElementById('edit-end-date').value = endDate; document.getElementById('edit-members').value = members; document.getElementById('edit-reg').value = reg; document.getElementById('edit-status').value = status; document.getElementById('edit-cert').value = cert; document.getElementById('edit-photos').value = photos; modal.style.display = 'flex'; }
         function closeModal() { modal.style.display = 'none'; }
